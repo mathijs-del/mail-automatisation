@@ -5,9 +5,11 @@
   "description": "THENEXT-GEN Gmail AI draft assistant",
   "type": "commonjs",
   "scripts": {
-    "validate-sheet": "node scripts/validate-sheet.js"
+    "validate-sheet": "node scripts/validate-sheet.js",
+    "run-fixtures": "node test/run-fixtures.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.0",
     "dotenv": "^16.4.5",
     "googleapis": "^144.0.0"
   }

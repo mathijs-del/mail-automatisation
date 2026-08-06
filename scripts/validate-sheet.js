@@ -8,8 +8,7 @@
 //   node scripts/validate-sheet.js                              (live, via .env)
 
 require("dotenv").config();
-const fs = require("fs");
-const { parseCsv } = require("../lib/csv");
+const { loadRawRows } = require("../lib/loadRawRows");
 const { rowsToTrajectories, validateTrajectories } = require("../lib/sheetParser");
 
 function printReport(schemaIssues, errors, warnings, trajectories) {
@@ -39,32 +38,24 @@ function printReport(schemaIssues, errors, warnings, trajectories) {
   }
 }
 
-async function loadRawRows() {
+async function main() {
   const csvIndex = process.argv.indexOf("--csv");
-  if (csvIndex !== -1) {
-    const csvPath = process.argv[csvIndex + 1];
-    if (!csvPath) {
-      console.error("--csv heeft een bestandspad nodig.");
-      process.exit(2);
-    }
-    const text = fs.readFileSync(csvPath, "utf8");
-    return parseCsv(text);
-  }
-
-  const { SHEET_ID, SHEET_TAB } = process.env;
-  if (!SHEET_ID || !SHEET_TAB) {
-    console.error(
-      "Geen --csv opgegeven en SHEET_ID/SHEET_TAB ontbreken in .env.\n" +
-      "Gebruik: node scripts/validate-sheet.js --csv pad/naar/export.csv"
-    );
+  const csvPath = csvIndex !== -1 ? process.argv[csvIndex + 1] : undefined;
+  if (csvIndex !== -1 && !csvPath) {
+    console.error("--csv heeft een bestandspad nodig.");
     process.exit(2);
   }
-  const { fetchTrajectRows } = require("../lib/sheetClient");
-  return fetchTrajectRows(SHEET_ID, SHEET_TAB);
-}
 
-async function main() {
-  const rawRows = await loadRawRows();
+  const rawRows = await loadRawRows({
+    csvPath,
+    sheetId: process.env.SHEET_ID,
+    sheetTab: process.env.SHEET_TAB,
+  }).catch((err) => {
+    console.error(
+      `${err.message}\nGebruik: node scripts/validate-sheet.js --csv pad/naar/export.csv`
+    );
+    process.exit(2);
+  });
   const { trajectories, schemaIssues } = rowsToTrajectories(rawRows);
   const { errors, warnings } = validateTrajectories(trajectories);
 
