@@ -25,7 +25,9 @@ staan in `E-fixtures/`.
 3. **Het antwoord zelf.**
 4. **Een open einde.** "Als je nog vragen hebt, horen we het graag" of
    "Let me know if anything else comes up."
-5. **`Met vriendelijke groeten,`** plus de standaard handtekening.
+5. **De afsluiting in de taal van de mail** — `Met vriendelijke groeten,` bij
+   een Nederlandse mail, `Kind regards,` bij een Engelse — plus de standaard
+   handtekening. Zie ook "Taal" onderaan.
 
 Nooit openen met "Bedankt voor je bericht" of "Naar aanleiding van uw mail".
 

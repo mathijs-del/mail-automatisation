@@ -29,6 +29,12 @@ LEVERANCIER_LOCATIE   venues, catering, equipment, ring announcer, photographer
 INTERN                colleagues, admin, bookkeeper
 RUIS                  newsletters, spam, automated confirmations
 
+Classify by who is writing, not by what the message is about. A participant
+reporting broken gear they bought from us is DEELNEMER_PRAKTISCH, not
+LEVERANCIER_LOCATIE — LEVERANCIER_LOCATIE is only for businesses we buy from
+or hire. When a participant could belong to more than one DEELNEMER_ category,
+pick the one matching what they are asking us to do.
+
 concept_toegestaan = false for DEELNEMER_MEDISCH and RUIS. True otherwise.
 
 Set "waarschuwing" to a short Dutch note when the message involves money,
