@@ -65,11 +65,6 @@ iedereen die de ring in gaat.
 Het shirt vermeldt je team, de namenlijst en de logo's. Het broekje draag je
 tijdens je wedstrijd. Je ontvangt hiervoor een Tikkie.
 
-## Wedstrijdbeelden (na het gala)
-
-Je kunt je eigen wedstrijdbeelden nabestellen, per ronde geknipt en bewerkt.
-Kosten €15,-. Levering binnen 10 werkdagen via WeTransfer.
-
 ## Zelf meenemen naar het gala
 
 Bitje, tok, handdoek, eten en drinken, en eventueel je eigen inpad-handschoenen

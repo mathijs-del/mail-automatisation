@@ -84,3 +84,14 @@ Stuur bij het plannen op een galadatum in:
 
 Vermijd dat de laatste trainingsmaand december is (feestmomenten), en houd
 rekening met kerstvakantie, feestweken en introductieperiodes.
+
+## Contactnummer deelnemers
+
+WhatsApp voor deelnemers en klanten: **+31 6 81665086**
+
+Dit is het nummer waarnaar we doorverwijzen bij alles wat heen-en-weer vraagt,
+persoonlijke gegevens nodig heeft of een uitzondering betreft (zie het
+doorverwijspatroon in `C1`).
+
+**Niet** gebruiken voor commerciële vragen over samenwerkingen, sponsoring of
+partnerships — die lopen niet via dit nummer.

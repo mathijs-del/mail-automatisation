@@ -19,7 +19,7 @@ Nergens staat wat deelname kost, en de materialenpakketten hebben geen
 prijzen. Dit is vermoedelijk de meestgestelde vraag van allemaal.
 
 Wel bekend: teamshirt €19,50 · broekje €25,- · huurhandschoenen
-informatiebijeenkomst €10 · wedstrijdbeelden €15 · drie paar windsels €19,95.
+informatiebijeenkomst €10 · drie paar windsels €19,95.
 
 **In te vullen:** deelnamekosten per traject (of per type traject), prijs van
 het standaard kickbokspakket, premium kickbokspakket, bokspakket, en de losse

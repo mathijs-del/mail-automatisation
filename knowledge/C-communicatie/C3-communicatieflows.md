@@ -49,8 +49,8 @@ SOMA-deck, voedingsschema's, Instagram-oproepen, clinic-reminders.
 
 Bevestiging dat je de ring in gaat, met de 3 kg-regel expliciet → teamchats
 aanmaken → ringspeakerinfo en VA-nummers, plus twee reminders (mail en appje)
-→ tips & tricks gala-avond → laatste informatie gala-dag → aanbod
-wedstrijdbeelden → evaluatieformulier.
+→ tips & tricks gala-avond → laatste informatie gala-dag → beelden van het
+gala → evaluatieformulier.
 
 > **Let op:** de tekst over matchen op maximaal 3 kg wordt altijd afgestemd met
 > Glen, zodat er geen probleem ontstaat als het bij de VA terechtkomt.

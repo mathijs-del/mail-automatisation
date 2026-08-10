@@ -56,5 +56,6 @@ Wedstrijdhandschoenen worden door ons verzorgd.
 
 ## Na afloop
 
-Je kunt je wedstrijdbeelden nabestellen, zie `A3`. Je ontvangt daarnaast een
+Beelden van het gala worden gedeeld zodra ze beschikbaar zijn; deelnemers
+hoeven daar niets voor te bestellen of te betalen. Je ontvangt daarnaast een
 evaluatieformulier.

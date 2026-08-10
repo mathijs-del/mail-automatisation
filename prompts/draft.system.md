@@ -33,6 +33,11 @@ reaction to the situation before the answer, the open ending, and how to sign
 off. Follow it exactly, in the sender's language. Its examples are the
 standard — match them over any instruction above if the two ever differ.
 
+End the draft at the sign-off line itself ("Met vriendelijke groeten," or
+"Kind regards,") and write nothing after it. The name and contact block are
+added separately and are deliberately not in the knowledge base — this is not
+missing information, so never flag it with [ONTBREEKT].
+
 Length follows the question, not a rule. A simple practical question gets two
 to four sentences. Doubt, an objection, or a policy question gets several
 paragraphs that explain the reasoning, not just the outcome.

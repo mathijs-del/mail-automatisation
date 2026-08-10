@@ -1,14 +1,14 @@
 # Fixture report
 
-Gegenereerd: 2026-08-10T12:25:07.935Z
-Fixtures: 8 — totale kosten: €0.1622
+Gegenereerd: 2026-08-10T12:37:41.663Z
+Fixtures: 8 — totale kosten: €0.1801
 
 ## Eaanmelding-na-deadline — Aanmelding boksgala
 
 **Van:** Lucas
 **Triage:** DEELNEMER_INSCHRIJF · deze_week · vereniging=null · taal=nl · concept_toegestaan=true
 **Waarschuwing:** Verzoek om uitzondering na deadline
-**Kosten:** €0.0860
+**Kosten:** €0.0879
 
 **Binnengekomen mail:**
 ```
@@ -27,16 +27,14 @@ Ik hoor graag van jullie,
 ⚠ Verzoek om uitzondering na deadline — extra checken voordat je verstuurt
 Hi Lucas,
 
-Wat leuk dat je nog mee wilt doen! Om welk traject gaat dit, welke vereniging bedoel je?
+Wat leuk dat je nog mee wilt doen! Om welk traject gaat dit precies, bij welke vereniging?
 
-Zou je me daarnaast even een WhatsApp bericht kunnen sturen op het onderstaande nummer? Dan kijken we samen even of er nog iets mogelijk is na de deadline.
-
-Tot snel!
+Zou je me daarnaast even een berichtje kunnen sturen op +31 6 81665086? Dan kunnen we samen kijken wat er nog mogelijk is na de deadline.
 
 Met vriendelijke groeten,
 
 ---
-Bron: C1-tone-of-voice.md (voorbeeld "Terugvragen in plaats van gokken"); rule 5 (geen toezeggingen over uitzonderingen na deadline)
+Bron: C1-tone-of-voice.md (voorbeeld "Terugvragen in plaats van gokken"), D1-normen-en-kengetallen.md (WhatsApp nummer), regel 5 (geen toezeggingen over uitzonderingen na deadline)
 ```
 
 **Wat jij echt verstuurde:**
@@ -55,7 +53,7 @@ nummer, dat is wat makkelijker!
 
 **Van:** Daan
 **Triage:** DEELNEMER_PRAKTISCH · deze_week · vereniging=Augustinus · taal=nl · concept_toegestaan=true
-**Kosten:** €0.0096
+**Kosten:** €0.0104
 
 **Binnengekomen mail:**
 ```
@@ -72,17 +70,16 @@ Ik hoor het graag. Alvast bedankt.
 ```
 Hi Daan,
 
-Wat leuk dat je meedoet met het traject van Augustinus!
+Wat vervelend dat het formulier al gesloten is. Kan jij mij even een berichtje sturen op het onderstaande nummer, dan regelen we het samen even!
 
-Kan jij mij even een berichtje sturen op het onderstaande nummer, dan regelen we samen even hoe je je spullen alsnog kunt bestellen!
+Tot snel!
 
 Met vriendelijke groeten,
-Mathijs
 
-[ONTBREEKT: WhatsApp-nummer staat niet in de brondata, reviewer moet dit zelf aanvullen]
+[AANNAME: er wordt geen deelnamekosten- of gala-informatie gebruikt; alleen doorverwezen naar WhatsApp conform het vaste patroon uit C1, omdat Augustinus niet in AI_TRAJECTDATA voorkomt]
 
 ---
-Bron: C1-tone-of-voice.md (voorbeeld "Doorverwijzen — bestelformulier al gesloten"), A3-materialen-en-kosten.md
+Bron: C-communicatie/C1-tone-of-voice.md (doorverwijspatroon en voorbeeld "Bestelformulier al gesloten"), D-data/D1-normen-en-kengetallen.md (WhatsApp nummer)
 ```
 
 **Wat jij echt verstuurde:**
@@ -101,7 +98,7 @@ regelen we het samen even!
 
 **Van:** Sanne
 **Triage:** HORECA_OUTREACH · deze_week · vereniging=null · taal=nl · concept_toegestaan=true
-**Kosten:** €0.0107
+**Kosten:** €0.0116
 
 **Binnengekomen mail:**
 ```
@@ -124,17 +121,16 @@ New submission from Contact form - NL
 ```
 Hi Sanne,
 
-Wat leuk dat je mee wilt doen! Om je goed te kunnen helpen: gaat het om het traject van Horeca Boxing Amsterdam?
+Leuk dat je interesse hebt! Ik kan zo niet helemaal scherp zien om welk traject het precies gaat met "Café De Hoek" — kun je me even laten weten voor welke vereniging of welk traject je je wilt aanmelden? Dan kijk ik voor je of aanmelden nog kan.
 
-Zou je mij dat even kunnen laten weten, dan kijk ik graag met je mee of aanmelden nog mogelijk is.
+Zou je me dat via WhatsApp kunnen laten weten op +31 6 81665086? Dat is even wat makkelijker.
 
 Met vriendelijke groeten,
-Mathijs
 
-[AANNAME: "Café De Hoek" wordt gekoppeld aan het traject Horeca Boxing Amsterdam, omdat dit het enige horeca-traject in de data is — dit is niet zeker en moet bevestigd worden]
+[AANNAME: "Café De Hoek" komt niet voor als vereniging in de trajectdata, dus kan niet gekoppeld worden aan een specifiek traject]
 
 ---
-Bron: AI_TRAJECTDATA sectie Horeca Boxing Amsterdam; C1-tone-of-voice.md (voorbeeld "Terugvragen in plaats van gokken")
+Bron: AI_TRAJECTDATA (geen match voor "Café De Hoek"), C1-tone-of-voice.md (doorverwijspatroon en voorbeeld "terugvragen in plaats van gokken"), D1-normen-en-kengetallen.md (WhatsApp-nummer)
 ```
 
 **Wat jij echt verstuurde:**
@@ -152,8 +148,8 @@ willen doen?
 
 **Van:** Julien
 **Triage:** DEELNEMER_INSCHRIJF · deze_week · vereniging=null · taal=en · concept_toegestaan=true
-**Waarschuwing:** Deelnemer heeft financiële vragen en negatieve ervaring met ander event.
-**Kosten:** €0.0163
+**Waarschuwing:** Deelnemer vraagt naar geldteruggave; vorige negatieve ervaring met ander event.
+**Kosten:** €0.0142
 
 **Binnengekomen mail:**
 ```
@@ -170,26 +166,23 @@ I wish you a lovely day.
 
 **AI-concept:**
 ```
-⚠ Deelnemer heeft financiële vragen en negatieve ervaring met ander event. — extra checken voordat je verstuurt
+⚠ Deelnemer vraagt naar geldteruggave; vorige negatieve ervaring met ander event. — extra checken voordat je verstuurt
 Hi Julien,
 
-No need to apologize, we understand your worries due to a bad experience!
+Thanks for reaching out, and no worries about the questions, that makes total sense given what you went through with the fightfans event.
 
-On finding an opponent: we can never guarantee a match in advance. Matchmaking depends on weight, experience level and the pool of participants across the programme, so promising a fight up front wouldn't be honest. What we can promise is that we do everything we can to make as many good matches as possible, and in practice we almost always find one. That's especially true for participants who attend all the central clinics and take the programme seriously, being present and progressing makes you far easier to match.
+On finding an opponent: we can never guarantee a match in advance. Matchmaking depends on weight, experience level and the pool of participants across the programme, so promising a fight up front wouldn't be honest. What we can promise is that we do everything we can to make as many good matches as possible, and in practice we almost always find one. That's especially true for participants who attend all the central clinics and take the programme seriously, being present and progressing makes you far easier to match. We don't offer refunds if no match is found. The price is already very sharp, because it covers a full three-month training programme built specifically around preparing you for the ring, not just the fight night itself.
 
-Tickets are in principle unfortunately non-refundable if no match is found. That said, we do a lot to keep that from happening in the first place. We deliberately make the matchmaking only three weeks before the gala, so we already know who is fit, who has trained consistently and who is realistically going to step into the ring. If it does happen anyway, we don't just leave it there, we always do our very best to find you another opponent, and in practice we usually manage to.
-
-Regarding the price for the public, I don't have that information on hand, so I can't share a number here.
+As for the price for the public, I don't have that on hand right now, so I'll leave that part open.
 
 Let me know if anything else comes up.
 
 Kind regards,
-Mathijs
 
-[ONTBREEKT: prijs voor publiek/toegangskaarten staat niet in de trajectdata of kennisbank]
+[ONTBREEKT: prijs voor publiek/toegangskaarten staat niet in de kennisbank of trajectdata]
 
 ---
-Bron: C1-tone-of-voice.md (voorbeelden "Geruststellen na een slechte ervaring elders" en referentievoorbeeld restitutie/matchmaking)
+Bron: C1-tone-of-voice.md (referentievoorbeeld restitutie/matchmaking Julien), A2-clinics-en-matchmaking.md (matchmaking-uitleg)
 ```
 
 **Wat jij echt verstuurde:**
@@ -239,7 +232,7 @@ Hope that clears things up. Let me know if anything else comes to mind.
 
 **Van:** Julien
 **Triage:** DEELNEMER_INSCHRIJF · deze_week · vereniging=null · taal=en · concept_toegestaan=true
-**Kosten:** €0.0109
+**Kosten:** €0.0291
 
 **Binnengekomen mail:**
 ```
@@ -257,18 +250,18 @@ See you very soon and have a nice day.
 ```
 Hi Julien,
 
-Good to hear you finished your final inscription for Horeca!
+That’s great to hear you’ve finished your registration for Horeca!
 
-Just to flag on the September trainings: attendance during trainings counts towards your chances of getting a spot in the ring, so it's worth joining as many as your schedule allows. As long as you're there for the key moments from October onwards, this shouldn't be a problem.
+No problem that you can’t make it to the info session on the 9th of August yourself. Good to know you’ll be busy with work in September as well — just keep in mind that attendance at trainings and clinics is one of the things that’s taken into account for the matchmaking, so being there as much as you can from October onwards will help your chances.
 
 Let me know if anything else comes up.
 
-Met vriendelijke groeten,
+Kind regards,
 
-[ONTBREEKT: geen standaard handtekening tekst beschikbaar in kennisbank, dus afsluiting na "Met vriendelijke groeten," is niet ingevuld]
+[AANNAME: sender is treated as continuing correspondence with THENEXT-GEN, associated with Horeca Boxing Amsterdam traject as mentioned in the mail]
 
 ---
-Bron: AI_TRAJECTDATA (Horeca Boxing Amsterdam), A4-trainingen-en-gezondheid.md, C1-tone-of-voice.md (voorbeeld "Drempel wegnemen bij aarzeling over meedoen")
+Bron: AI_TRAJECTDATA (Horeca Boxing Amsterdam — informatiebijeenkomst 2026-08-09), A4-trainingen-en-gezondheid.md (aanwezigheid weegt mee in matchmaking), C1-tone-of-voice.md (vorm en opening)
 ```
 
 **Wat jij echt verstuurde:**
@@ -292,7 +285,7 @@ meantime, just let me know.
 
 **Van:** Sem
 **Triage:** DEELNEMER_PRAKTISCH · fyi · vereniging=skøll · taal=nl · concept_toegestaan=true
-**Kosten:** €0.0109
+**Kosten:** €0.0089
 
 **Binnengekomen mail:**
 ```
@@ -306,17 +299,14 @@ zijn gemaakt en of ik die ergens kan zien?
 ```
 Hi Sem,
 
-Wat leuk dat je hebt gevochten op het gala! Je kunt je eigen wedstrijdbeelden nabestellen, per ronde geknipt en bewerkt. De kosten hiervoor zijn €15,- en levering gaat binnen 10 werkdagen via WeTransfer.
-
-Kan jij mij even een berichtje sturen op het onderstaande nummer, dan regelen we het samen even!
+Wat leuk dat je hebt gevochten op het gala van skøll! Beelden van het gala worden gedeeld zodra ze beschikbaar zijn, dus houd je mail en de teamchat in de gaten. Je hoeft daar zelf niets voor te bestellen of te betalen.
 
 Als je nog vragen hebt, horen we het graag.
 
 Met vriendelijke groeten,
 
 ---
-Bron: A3-materialen-en-kosten.md (Wedstrijdbeelden na het gala), C1-tone-of-voice.md (vaste vorm en doorverwijzen naar WhatsApp)
-[AANNAME: Skøll is een vereniging die deelneemt aan het traject, ook al staat deze niet in AI_TRAJECTDATA]
+Bron: A5-gala-en-ring.md ("Na afloop")
 ```
 
 **Wat jij echt verstuurde:**
@@ -333,7 +323,7 @@ gedeeld!
 
 **Van:** Thijs
 **Triage:** DEELNEMER_PRAKTISCH · deze_week · vereniging=null · taal=nl · concept_toegestaan=true
-**Waarschuwing:** Deelnemer meldt defect materiaal na beperkt gebruik
+**Waarschuwing:** Deelnemer meldt defect trainingsmateriaal na beperkt gebruik
 **Kosten:** €0.0087
 
 **Binnengekomen mail:**
@@ -347,7 +337,7 @@ Thijs
 
 **AI-concept:**
 ```
-⚠ Deelnemer meldt defect materiaal na beperkt gebruik — extra checken voordat je verstuurt
+⚠ Deelnemer meldt defect trainingsmateriaal na beperkt gebruik — extra checken voordat je verstuurt
 Hi Thijs,
 
 Wat vervelend dat jouw handschoenen kapot zijn gegaan, zou jij mij even een foto hiervan kunnen mailen of appen? Dan stuur ik zo snel mogelijk nieuwe naar je op!
@@ -355,7 +345,7 @@ Wat vervelend dat jouw handschoenen kapot zijn gegaan, zou jij mij even een foto
 Met vriendelijke groeten,
 
 ---
-Bron: C-communicatie/C1-tone-of-voice.md (voorbeeld "Kort en operationeel — kapotte materialen")
+Bron: C1-tone-of-voice.md (voorbeeld "Kort en operationeel — kapotte materialen")
 ```
 
 **Wat jij echt verstuurde:**
@@ -374,7 +364,7 @@ naar je op!
 **Van:** Ruben
 **Triage:** DEELNEMER_PRAKTISCH · deze_week · vereniging=null · taal=nl · concept_toegestaan=true
 **Waarschuwing:** Deelnemer meldt defect materiaal en vraagt vervanging
-**Kosten:** €0.0090
+**Kosten:** €0.0093
 
 **Binnengekomen mail:**
 ```
@@ -393,10 +383,9 @@ Hi Ruben,
 Wat vervelend dat jouw bokshandschoenen al na een week kapot zijn gegaan. Zou je mij even een foto hiervan kunnen mailen of appen? Dan stuur ik zo snel mogelijk een nieuw paar naar je op!
 
 Met vriendelijke groeten,
-Mathijs
 
 ---
-Bron: C1-tone-of-voice.md (voorbeeld "Kort en operationeel — kapotte materialen")
+Bron: A3-materialen-en-kosten.md (materialen/pakketten), C1-tone-of-voice.md (voorbeeld "kapotte materialen")
 ```
 
 **Wat jij echt verstuurde:**
