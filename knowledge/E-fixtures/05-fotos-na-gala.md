@@ -1,0 +1,17 @@
+# Fixture: Foto’s kickboksgala skøll
+
+Berichten: 2 · geanonimiseerd
+
+## Afzender
+
+Lieve mensen van the Next-Gen,
+Ik heb vorige week gevochten op het kickboksgala van skøll en ik zag daar
+veel professionele camera’s rondgaan. Ik vroeg me af of er mooie beelden
+zijn gemaakt en of ik die ergens kan zien?
+
+## THENEXT-GEN
+
+Hi Sem,
+
+Zodra deze beelden beschikbaar zijn worden deze uiteraard met jullie
+gedeeld!

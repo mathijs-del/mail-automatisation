@@ -1,0 +1,19 @@
+# Fixture: Boxhandschoenen
+
+Berichten: 2 · geanonimiseerd
+
+## Afzender
+
+Beste next gen,
+Na 6 trainingen begonnen mijn handschoenen te scheuren. Van Peter de trainer is aangegeven dat je niet met kapote handschoenen mag trainen.
+Zouden jullie een nieuw paar voor mij kunnen klaar leggen?
+Met vriendelijke Groet .
+Thijs
+
+## THENEXT-GEN
+
+Hi Thijs,
+
+Wat vervelend dat jouw handschoenen kapot zijn gegaan, zou jij mij even een
+foto hiervan kunnen mailen of appen? Dan stuur ik zo snel mogelijk nieuwe
+naar je op!
