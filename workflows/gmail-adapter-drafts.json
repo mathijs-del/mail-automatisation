@@ -1,0 +1,204 @@
+{
+  "name": "gmail-adapter-drafts",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Every 2 hours"
+    },
+    {
+      "parameters": {
+        "documentId": "={{ $env.LOG_SHEET_ID }}",
+        "sheetName": "={{ $env.LOG_SHEET_TAB }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        200,
+        0
+      ],
+      "name": "Read log"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Only rows triage marked as awaiting a draft.\nreturn $input.all()\n  .filter(i => String(i.json.concept_gemaakt || '').trim() === 'wacht')\n  .map(i => {\n    let triage = {};\n    try { triage = JSON.parse(i.json.triage_json); } catch (e) {}\n    return { json: {\n      channel: 'email',\n      sender: i.json.afzender,\n      subject: i.json.subject,\n      body: i.json.body || i.json.subject,\n      language_hint: triage.taal || 'nl',\n      triage,\n      messageId: i.json.messageId,\n      threadId: i.json.threadId,\n      rowNumber: i.json.row_number,\n    } };\n  });"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ],
+      "name": "Pending drafts"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{ $env.CORE_WORKFLOW_ID }}",
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "={{ $json.channel }}",
+            "sender": "={{ $json.sender }}",
+            "subject": "={{ $json.subject }}",
+            "body": "={{ $json.body }}",
+            "language_hint": "={{ $json.language_hint }}",
+            "triage": "={{ $json.triage }}"
+          }
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        600,
+        0
+      ],
+      "name": "ai-draft-core"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "subject": "=Re: {{ $('Pending drafts').item.json.subject }}",
+        "message": "={{ $json.draft_text }}",
+        "options": {
+          "threadId": "={{ $('Pending drafts').item.json.threadId }}",
+          "sendTo": "={{ $('Pending drafts').item.json.sender }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        800,
+        0
+      ],
+      "name": "Create draft"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Pending drafts').item.json.messageId }}",
+        "labelIds": [
+          "AI/Concept-klaar"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1000,
+        0
+      ],
+      "name": "Label concept-klaar"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": "={{ $env.LOG_SHEET_ID }}",
+        "sheetName": "={{ $env.LOG_SHEET_TAB }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Pending drafts').item.json.rowNumber }}",
+            "concept_gemaakt": "ja"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1200,
+        0
+      ],
+      "name": "Mark done"
+    }
+  ],
+  "connections": {
+    "Every 2 hours": {
+      "main": [
+        [
+          {
+            "node": "Read log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read log": {
+      "main": [
+        [
+          {
+            "node": "Pending drafts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pending drafts": {
+      "main": [
+        [
+          {
+            "node": "ai-draft-core",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ai-draft-core": {
+      "main": [
+        [
+          {
+            "node": "Create draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create draft": {
+      "main": [
+        [
+          {
+            "node": "Label concept-klaar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label concept-klaar": {
+      "main": [
+        [
+          {
+            "node": "Mark done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "name": "ai-draft-core",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "channel"
+            },
+            {
+              "name": "sender"
+            },
+            {
+              "name": "subject"
+            },
+            {
+              "name": "body"
+            },
+            {
+              "name": "language_hint"
+            },
+            {
+              "name": "triage"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { knowledge: \"<!-- BRON: A-deelnemers/A1-traject-en-fases.md -->\\n---\\neigenaar: Operations Manager\\nlaatst bijgewerkt: 2026-08-04\\nbron: Kennisbank Deelnemers §1, Handboek Operations §1, §2.7, §2.8\\ndoelgroep: deelnemers\\n---\\n\\n# Het traject — opbouw en fases\\n\\nEen traject duurt in totaal 5,5 maand, waarvan 3 maanden trainen tot de\\ngala-avond. Concrete datums per vereniging: zie `AI_TRAJECTDATA`.\\n\\n## Fase 1 — Promotie en informatiebijeenkomst\\n\\nDe promotie start vier weken vóór de informatiebijeenkomst en loopt via de\\nkanalen van de vereniging zelf.\\n\\nDe informatiebijeenkomst duurt 1,5 uur. Het eerste half uur is een presentatie\\ndoor de trajectmanager met ruimte voor vragen, daarna volgt een **gratis\\nproeftraining** van een uur waarin de basis wordt behandeld (links, rechts,\\nhoek). De hoofdtrainer en twee tot drie trainers van de sportschool zijn\\naanwezig.\\n\\nWat er in de presentatie aan bod komt: indeling van het traject, de\\ntrainingstypen (techniek en zak), de centrale clinics, de materialenpakketten,\\nhoe je je voor lessen aanmeldt, het fysieke en mentale aspect, het\\ntrainingskamp in het buitenland, en de trainingsintensiteit.\\n\\nHandschoenen huren voor de proeftraining kan voor €10 per persoon. Geef dit\\nvooraf door, want de trajectmanager neemt ze mee.\\n\\nAanmelden gaat via de eigen pagina van de vereniging op onze website. Daarna\\nloopt alle verdere informatie automatisch via de mail.\\n\\n## Fase 2 — Definitieve inschrijving en materialen\\n\\nNa de informatiebijeenkomst is er ongeveer drie weken de tijd om je definitief\\nin te schrijven. In diezelfde periode bestel je materialen.\\n\\n**Deadline: woensdag vóór de start van het traject.** Die deadline is hard,\\nomdat daarna alles klaargezet moet worden — mails, materiaalbestelling,\\ngroepsapp en het trainingsrooster in Teamy.\\n\\n## Fase 3 — Trainingsperiode (12 weken)\\n\\nHet traject start op maandag met een kick-off training. Je traint 3 tot 5 keer\\nper week. Elke drie weken is er een centrale clinic. Zie `A2`.\\n\\n## Fase 4 — Matchmaking en teamindeling\\n\\nNa clinic 3 worden de definitieve matches bekendgemaakt en word je ingedeeld\\nbij Team Rood of Team Blauw. Vanaf dat moment train je in teamverband met je\\neigen coach en zie je je tegenstander niet meer tot de gala-avond. Zie `A2`.\\n\\n## Fase 5 — Voorbereiding op het gala\\n\\nJe ontvangt informatie over je VA-nummer, het ringspeakerformulier en de\\nteamkleding. De laatste drie tot vier dagen voor het gala wordt er niet meer\\nintensief getraind. Zie `A5`.\\n\\n---\\n\\n<!-- BRON: A-deelnemers/A2-clinics-en-matchmaking.md -->\\n---\\neigenaar: Trajectmanager\\nlaatst bijgewerkt: 2026-08-04\\nbron: Handboek Operations §2.5.4, §4.1, §5.1, §5.2, §5.3, §6.1; Kennisbank Deelnemers §2, §5, §6\\ndoelgroep: deelnemers\\n---\\n\\n# Centrale clinics, ambitie tot de ring en matchmaking\\n\\nEr zijn drie centrale clinics. Ze duren anderhalf uur en vinden bij voorkeur\\nplaats op zaterdag of zondag. Datums en locaties: `AI_TRAJECTDATA`.\\n\\n**Aanwezigheid is verplicht voor iedereen die kans wil maken op een plek in de\\nring.** In de communicatie naar deelnemers zijn alle clinics verplicht. Kun je\\necht niet, meld dat vooraf bij de trajectmanager.\\n\\nMeenemen naar elke clinic: bitje, scheenbeschermers, windsels en handschoenen.\\n\\n## Clinic 1 — eerste meetmoment\\n\\nVoor het eerst langer sparren met elkaar, in groepjes ingedeeld op gewicht en\\ngeslacht. Het doel is inzicht krijgen in niveau, inzet en basisvaardigheden.\\n\\nDe intensiteit ligt hoog en een bloedneus of een traan hoort erbij. Het is\\nuitdrukkelijk **niet** de bedoeling elkaar knock-out te slaan — hoge\\nintensiteit is iets anders dan zo hard mogelijk stoten. Vind je dat het te\\nhard gaat, geef dat dan direct aan bij je sparringpartner en de\\ntrajectmanager.\\n\\nVoor deelnemers is dit ook het moment waarop je zelf voelt wat er in de ring\\ngaat gebeuren.\\n\\n## Ambitie tot de Ring\\n\\nOp de dag van clinic 1 gaat het formulier **Ambitie tot de Ring** online. Wil\\nje meedoen aan het gala, dan is dit formulier verplicht.\\n\\n**Zonder ingevuld formulier word je niet meegenomen in de matchmaking.** Je\\nvult hier ook je gewicht en je shirt- en broekmaat in.\\n\\n## Clinic 2 — techniek en weging\\n\\nDeze clinic draait om techniek en technisch sparren. Potentiële matches worden\\ntegenover elkaar gezet voor twee tot drie rondes.\\n\\n**Iedereen wordt gewogen.** Trainers en trajectmanager noteren de gewichten en\\nnemen die mee in de matchmaking.\\n\\nDeze clinic is niet verplicht als je geen ambitie tot de ring hebt.\\n\\n## Clinic 3 — definitieve matchmaking\\n\\nEen lichte, technische training. Er wordt opnieuw gewogen, de matches worden\\nbekendgemaakt en de teams Rood en Blauw worden ingedeeld. Er vindt een\\nstaredown plaats tussen de gematchte deelnemers. Kledingmaten worden\\ngecontroleerd.\\n\\nVanaf dit moment train je gescheiden met je eigen team en coach.\\n\\nDeze clinic is niet verplicht als je geen ambitie tot de ring hebt.\\n\\n## Hoe matchmaking werkt\\n\\nDe matchmaking wordt gemaakt door de trajectmanager samen met de trainers van\\nde sportschool, op basis van:\\n\\n- gewicht\\n- niveau en techniek\\n- inzet en aanwezigheid bij trainingen\\n- progressie gedurende het traject\\n- veiligheid\\n- observaties van de trainers\\n\\n**Vaste regels:**\\n- Maximaal 3 kg gewichtsverschil. Meer verschil betekent geen match.\\n- Geen matches tussen ervaren vechters en beginners.\\n- Huis-, club- en dispuutgenoten worden niet aan elkaar gekoppeld.\\n- Wie buiten het traject traint in plaats van bij de trajectsportschool, wordt\\n  niet gematcht.\\n\\nEr gaan gemiddeld 16 tot 20 deelnemers de ring in, verdeeld over 8 tot 10\\nwedstrijden. Dat betekent dat niet iedereen met ambitie ook daadwerkelijk een\\nmatch krijgt.\\n\\n---\\n\\n<!-- BRON: A-deelnemers/A3-materialen-en-kosten.md -->\\n---\\neigenaar: Operations Manager\\nlaatst bijgewerkt: 2026-08-04\\nbron: Handboek Operations §2.9, §2.9.1, §6.1; Kennisbank Deelnemers §3\\ndoelgroep: deelnemers\\n---\\n\\n# Materialen, teamkleding en kosten\\n\\n> **Let op:** dit bestand is nog incompleet. De prijzen van de\\n> materialenpakketten en de deelnamekosten ontbreken. Zie `01-ONTBREEKT.md`.\\n> Zolang die er niet staan, mag er nooit een bedrag genoemd worden dat hier\\n> niet expliciet staat.\\n\\n## Pakketten\\n\\nBestellen gaat via een Google Form, dat je na de informatiebijeenkomst\\nontvangt.\\n\\n**Standaard kickbokspakket** — handschoenen (dames 14oz, heren 16oz), stoffen\\nscheenbeschermers, windsels, tok, bitje\\n\\n**Premium kickbokspakket** — handschoenen (dames 14oz, heren 16oz),\\nverzwaarde scheenbeschermers, windsels, tok, bitje\\n\\n**Bokspakket** — handschoenen (dames 14oz, heren 16oz), windsels, tok, bitje\\n\\n**Losse artikelen** — onder andere windsels (3 paar voor €19,95)\\n\\nDeelnemers krijgen korting ten opzichte van de normale winkelprijs. Ook als je\\nal materiaal hebt, raden we het pakket aan: je traint dan met het materiaal\\nwaarmee je uiteindelijk ook de ring in gaat.\\n\\n## Bestellen en betalen\\n\\n- Bestellen kan tot **woensdag vóór de start van het traject**.\\n- Betaling gaat via **Tikkie**, verstuurd per sms. Betaal op tijd, anders kan\\n  de bestelling niet mee met de levering.\\n- Betaling vindt plaats vóór wij bestellen.\\n\\n**Veelgemaakte fouten:** tokmaat vergeten door te geven (je wordt dan geappt),\\nen een verkeerd telefoonnummer invullen waardoor de Tikkie niet aankomt.\\nControleer je gegevens.\\n\\n## Ophalen\\n\\nDe materialen worden geleverd op de sociëteit, meestal op de dag dat het\\ntraject start. Je haalt ze op tijdens een aangekondigd ophaalmoment, waarbij\\ncommissieleden aanwezig zijn om uit te delen. Je kunt niet op een zelfgekozen\\nmoment langskomen.\\n\\nKun je niet zelf komen, dan mag iemand anders het voor je ophalen, mits die\\npersoon kan aantonen dat jij toestemming hebt gegeven.\\n\\n## Teamkleding (na clinic 3)\\n\\nZodra de matches bekend zijn worden teamshirts en broekjes besteld voor\\niedereen die de ring in gaat.\\n\\n| | |\\n|---|---|\\n| Teamshirt | €19,50 |\\n| Broekje | €25,- |\\n\\nHet shirt vermeldt je team, de namenlijst en de logo's. Het broekje draag je\\ntijdens je wedstrijd. Je ontvangt hiervoor een Tikkie.\\n\\n## Zelf meenemen naar het gala\\n\\nBitje, tok, handdoek, eten en drinken, en eventueel je eigen inpad-handschoenen\\nen scheenbeschermers. De wedstrijdhandschoenen worden door THENEXT-GEN\\nverzorgd.\\n\\n---\\n\\n<!-- BRON: A-deelnemers/A4-trainingen-en-gezondheid.md -->\\n---\\neigenaar: Operations Manager\\nlaatst bijgewerkt: 2026-08-04\\nbron: Kennisbank Deelnemers §4, Handboek Operations §2.5.3, §3.1, §3.3\\ndoelgroep: deelnemers\\n---\\n\\n# Trainingen, aanwezigheid en gezondheid\\n\\n## Trainen\\n\\nJe traint 3 tot 5 keer per week. Er zijn verschillende soorten trainingen:\\ntechniek, conditie en zak. Daarnaast zijn er speciale trajectlessen waar\\nalleen deelnemers van het traject aan meedoen.\\n\\nInschrijven voor trainingen gaat via **Teamy**. Het rooster staat nooit meer\\ndan twee weken vooruit open. Goedkeuring van je aanmelding gebeurt handmatig\\nen kan even duren.\\n\\nDe sportschool houdt aanwezigheid bij. Aanwezigheid bij trainingen en clinics\\nweegt mee in de kans om de ring in te gaan.\\n\\n## Ervaring\\n\\nJe hoeft geen ervaring te hebben. De meeste deelnemers hebben nog nooit\\ngebokst of gekickbokst.\\n\\n## Blessures en klachten\\n\\n**Meld blessures en klachten altijd direct bij zowel de trainers als de\\ntrajectmanager.** Je trainers bepalen of en hoe je veilig door kunt trainen.\\n\\nBij inschrijving worden medische bijzonderheden uitgevraagd. Voor de start van\\nhet traject wordt dit gecontroleerd en doorgegeven aan de trajectmanager.\\n\\n> Vragen over blessures, medicatie, zwangerschap of medische geschiktheid\\n> worden **altijd persoonlijk beantwoord** door de trajectmanager of\\n> Operations Manager. Nooit via een standaardantwoord.\\n\\n## Meedoen zonder te vechten\\n\\nJe mag het volledige traject volgen zonder de ring in te gaan. Je traint dan\\ngewoon mee. Clinic 2 en 3 zijn in dat geval niet verplicht.\\n\\n## Voeding\\n\\nVia ons kun je een voedingsschema op maat laten maken, gericht op aankomen,\\nafvallen of spiermassa behouden. Dit gebeurt in samenwerking met onze\\nvoedingsdeskundige.\\n\\nAanvragen gaat via een Google Form. Je ontvangt het schema binnen enkele\\nwerkdagen, samen met je dagelijkse behoefte in calorieën, eiwit, koolhydraten\\nen vet, zodat je ook zelf gerechten kunt samenstellen.\\n\\n## Rust voor het gala\\n\\nDe laatste drie tot vier dagen voor het gala wordt er niet meer intensief\\ngetraind.\\n\\n---\\n\\n<!-- BRON: A-deelnemers/A5-gala-en-ring.md -->\\n---\\neigenaar: Operations Manager\\nlaatst bijgewerkt: 2026-08-04\\nbron: Handboek Operations §7.2, §7.3, §8.2; Kennisbank Deelnemers §7, §10\\ndoelgroep: deelnemers\\n---\\n\\n# Het gala en de ring\\n\\nDatum en locatie per traject: `AI_TRAJECTDATA`.\\n\\n## VA-nummer\\n\\nOm de ring in te mogen moet je geregistreerd staan bij de **Vechtsport\\nAutoriteit**. Je maakt zelf een VA-nummer aan; je ontvangt hierover een mail\\nmet instructies.\\n\\nJe levert het nummer in via hetzelfde Google Form als de ringspeakerinformatie.\\nZonder VA-nummer kun je niet vechten, dus lever dit op tijd in.\\n\\n## Ringspeakerinformatie\\n\\nJe vult een formulier in met informatie over jezelf en leuke feitjes. De\\nringspeaker gebruikt dit tijdens je opkomst.\\n\\n**Vul het ringspeakerformulier pas in als je je VA-nummer hebt**, want beide\\ngaan via hetzelfde formulier.\\n\\n## Teams en opkomst\\n\\nNa clinic 3 zit je in Team Rood of Team Blauw. Elk team heeft een eigen\\ngroepsapp met de hoofdtrainer erin. Team Blauw komt op de avond altijd als\\neerste op.\\n\\nJe kiest een opkomstnummer. De vereniging verzamelt deze.\\n\\n## Op de gala-dag\\n\\n- Er vindt nog een **weging** plaats op locatie.\\n- Daarna worden alle vechters bij elkaar geroepen om de logistiek van de avond\\n  door te nemen.\\n- In het draaiboek staat 15 minuten per wedstrijd, inclusief opkomst, pauze en\\n  bekendmaking van de winnaar.\\n- Aanwezigheidstijd krijg je per mail en via de teamchat door.\\n\\n## Meenemen\\n\\n- Bitje\\n- Tok\\n- Broekje (ontvangen via THENEXT-GEN)\\n- Teamshirt\\n- Eventueel scheenbeschermers\\n- Handdoek, eten en drinken\\n\\nWedstrijdhandschoenen worden door ons verzorgd.\\n\\n## Na afloop\\n\\nBeelden van het gala worden gedeeld zodra ze beschikbaar zijn; deelnemers\\nhoeven daar niets voor te bestellen of te betalen. Je ontvangt daarnaast een\\nevaluatieformulier.\\n\\n---\\n\\n<!-- BRON: A-deelnemers/A6-veelgestelde-vragen.md -->\\n---\\neigenaar: Operations Manager\\nlaatst bijgewerkt: 2026-08-04\\nbron: Kennisbank Deelnemers §9\\ndoelgroep: deelnemers\\n---\\n\\n# Veelgestelde vragen\\n\\nAlleen vragen die nergens anders thuishoren. Staat het antwoord in `A1`–`A5`,\\ndan hoort het daar en niet hier.\\n\\n**Moet ik ervaring hebben?**\\nNee. De meeste deelnemers hebben nog nooit gebokst of gekickbokst.\\n\\n**Mag ik meedoen als ik niet de ring in wil?**\\nJa. Je mag het volledige traject volgen zonder te vechten. Clinic 2 en 3 zijn\\ndan niet verplicht.\\n\\n**Hoe wordt bepaald of ik in de ring kom?**\\nOp basis van niveau, techniek, inzet, progressie, gewicht en veiligheid. Zie\\n`A2`.\\n\\n**Is aanwezigheid bij de clinics verplicht?**\\nJa, voor iedereen die kans wil maken op een plek in de ring. Clinic 1 is voor\\niedereen. Zie `A2`.\\n\\n**Wat als ik een blessure krijg?**\\nMeld het direct bij je trainers en de trajectmanager. Zij bepalen of je veilig\\ndoor kunt trainen. Zie `A4`.\\n\\n**Ik heb geen mail ontvangen.**\\nControleer eerst je spamfolder. Staat het er niet, stuur dan een bericht naar\\nhet nummer in de groepsapp of mail info@thenext-gen.com.\\n\\n**Kan ik nog materialen bijbestellen tijdens het traject?**\\nJa, er zijn gedurende het traject momenten waarop je extra materiaal kunt\\nbestellen. Zie `A3`.\\n\\n---\\n\\n<!-- BRON: C-communicatie/C1-tone-of-voice.md -->\\n---\\neigenaar: Operations Manager\\nlaatst bijgewerkt: 2026-08-06\\nbron: 8 echte mailthreads uit info@thenext-gen.com (zie E-fixtures/)\\ngebruikt door: mailbot\\n---\\n\\n# Tone of voice\\n\\nDit bestand bepaalt hoe onze antwoorden klinken. Voor de mailbot is het het\\nbelangrijkste bestand van de kennisbank. De voorbeelden zijn de norm; de\\nregels erboven beschrijven alleen wat er in die voorbeelden gebeurt.\\n\\nAlle voorbeelden zijn echte, geanonimiseerde antwoorden. Volledige threads\\nstaan in `E-fixtures/`.\\n\\n## De vaste vorm\\n\\n1. **`Hi [voornaam],`** — altijd. Nooit \\\"Beste\\\", nooit \\\"Geachte\\\", ook niet als\\n   de afzender zelf formeel begint.\\n2. **Een reactie op de situatie**, vóór het antwoord. Positief nieuws krijgt\\n   \\\"Wat leuk dat…\\\", een probleem krijgt \\\"Wat vervelend dat…\\\". Dit is geen\\n   beleefdheidsformule maar de manier waarop we laten merken dat we het gelezen\\n   hebben.\\n3. **Het antwoord zelf.**\\n4. **Een open einde.** \\\"Als je nog vragen hebt, horen we het graag\\\" of\\n   \\\"Let me know if anything else comes up.\\\"\\n5. **De afsluiting in de taal van de mail** — `Met vriendelijke groeten,` bij\\n   een Nederlandse mail, `Kind regards,` bij een Engelse — plus de standaard\\n   handtekening. Zie ook \\\"Taal\\\" onderaan.\\n\\nNooit openen met \\\"Bedankt voor je bericht\\\" of \\\"Naar aanleiding van uw mail\\\".\\n\\n## Lengte volgt de vraag, niet een regel\\n\\nEr is geen vaste lengte. Wat het bepaalt is wat de afzender nodig heeft:\\n\\n- **Praktische vraag met een simpel antwoord** — twee tot vier zinnen. Kort is\\n  hier beter, niet luier.\\n- **Twijfel, bezwaar of beleidsvraag** — meerdere alinea's, waarin je niet\\n  alleen zegt wat het beleid is maar ook *waarom*. Zie het derde voorbeeld\\n  hieronder. Dit is waar onze mails het verschil maken.\\n\\nAls iemand aarzelt, is een kort antwoord het slechtste antwoord.\\n\\n## Het patroon dat we het vaakst gebruiken: doorverwijzen naar WhatsApp\\n\\nBij alles wat heen-en-weer vraagt, persoonlijke gegevens nodig heeft of een\\nuitzondering betreft, verplaatsen we het gesprek:\\n\\n> Kan jij mij even een berichtje sturen op het onderstaande nummer, dan regelen\\n> we het samen even!\\n\\nDit is geen afhouden, het is sneller voor beide kanten. Voor de mailbot is dit\\neen volwaardig antwoord op vragen die anders drie mails zouden kosten.\\n\\n## Wat we niet doen\\n\\n- Niets beloven wat we niet kunnen waarmaken. We zeggen letterlijk dat we een\\n  match niet vooraf kunnen garanderen, omdat dat niet eerlijk zou zijn.\\n- Beleid niet kaal neerzetten. \\\"Geen restitutie\\\" alleen is geen antwoord; leg\\n  uit waarom en wat we wél doen.\\n- Geen marketingtaal, geen uitroeptekens in reeksen.\\n\\n---\\n\\n## Voorbeelden\\n\\n**Kort en operationeel — kapotte materialen**\\n\\n> Hi Thijs,\\n>\\n> Wat vervelend dat jouw handschoenen kapot zijn gegaan, zou jij mij even een\\n> foto hiervan kunnen mailen of appen? Dan stuur ik zo snel mogelijk nieuwe\\n> naar je op!\\n\\n**Doorverwijzen — bestelformulier al gesloten**\\n\\n> Hi Daan,\\n>\\n> Wat leuk dat je meedoet met het traject van Augustinus!\\n>\\n> Kan jij mij even een berichtje sturen op het onderstaande nummer, dan regelen\\n> we het samen even!\\n\\n**Uitgebreid — een deelnemer met twijfels over restitutie**\\n\\nDit is het referentievoorbeeld voor alles wat beleidsmatig of gevoelig is. Let\\nop de opbouw: eerst de zorg erkennen, dan eerlijk zijn over wat we niet kunnen\\ngaranderen, dan uitleggen wat we wél doen en waarom dat werkt.\\n\\n> Hi Julien,\\n>\\n> Thanks for reaching out, we are happy to clarify both points.\\n>\\n> On finding an opponent: we can never guarantee a match in advance.\\n> Matchmaking depends on weight, experience level and the pool of participants\\n> across the programme, so promising a fight up front wouldn't be honest. What\\n> we can promise is that we do everything we can to make as many good matches\\n> as possible, and in practice we almost always find one. That's especially\\n> true for participants who attend all the central clinics and take the\\n> programme seriously, being present and progressing makes you far easier to\\n> match. We don't offer refunds if no match is found. The price is already very\\n> sharp, because it covers a full three-month training programme built\\n> specifically around preparing you for the ring, not just the fight night\\n> itself.\\n>\\n> Let me know if anything else comes up.\\n\\n**Geruststellen na een slechte ervaring elders**\\n\\n> Hi Julien,\\n>\\n> No need to apologize, we understand your worries due to a bad experience!\\n> Tickets are in principle unfortunately non-refundable. That said, we do a lot\\n> to keep that from happening in the first place. We deliberately make the\\n> matchmaking only three weeks before the gala. Doing it that late means we\\n> already know who is fit, who has trained consistently and who is\\n> realistically going to step into the ring. This massively reduces the chance\\n> of a fight falling apart because of an injury or a late cancellation. And if\\n> it does happen, we don't just leave it there. We always do our very best to\\n> find you another opponent, and in practice we usually manage to.\\n\\n**Drempel wegnemen bij aarzeling over meedoen**\\n\\n> Hi Julien,\\n>\\n> To put your mind at ease: taking part is absolutely no problem given your\\n> situation. The training program officially kicks off on [datum], but all of\\n> the selection moments take place in [maanden]. As long as you're present for\\n> those, travelling frequently during [maand] won't stand in your way at all.\\n\\n**Terugvragen in plaats van gokken**\\n\\n> Hi Lucas,\\n>\\n> Wat leuk dat je nog mee wilt doen. Om welk traject gaat dit?\\n>\\n> Zou je mij even een WhatsApp bericht kunnen sturen op het onderstaande\\n> nummer, dat is wat makkelijker!\\n\\nDit is precies wat de mailbot moet doen als de vereniging niet uit de mail\\nblijkt: terugvragen, niet aannemen.\\n\\n## Taal\\n\\nAntwoord in de taal van de afzender. Bij Engelse mails ook de afsluiting in het\\nEngels (\\\"Kind regards\\\") — niet \\\"Met vriendelijke groeten\\\" onder een Engelse\\ntekst, wat nu af en toe gebeurt.\\n\\n---\\n\\n<!-- BRON: D-data/D1-normen-en-kengetallen.md -->\\n---\\neigenaar: Operations Manager\\nlaatst bijgewerkt: 2026-08-04\\nbron: Handboek Operations §1, §2.2, §2.5.3, §2.5.4, §6.1, §7.5, §8.2\\n---\\n\\n# Normen en kengetallen\\n\\nAlle vaste getallen van een traject. Dit is het eigenaarsbestand: staat een\\ngetal hier, dan wordt het nergens anders herhaald.\\n\\n> Dit zijn **normen**, geen datums. De werkelijke datums per vereniging staan\\n> in `AI_TRAJECTDATA`. Verenigingen wijken bewust af van deze normen.\\n\\n## Duur en opbouw\\n\\n| | |\\n|---|---|\\n| Totale duur traject | 5,5 maand |\\n| Trainingsperiode | 3 maanden (12 weken) |\\n| Promotieperiode deel 1 | 4 weken, vóór de informatiebijeenkomst |\\n| Promotieperiode deel 2 | 3 weken, ná de informatiebijeenkomst |\\n| Deadline definitieve inschrijving | woensdag vóór start traject |\\n| Start traject | altijd op maandag, met kick-off training |\\n\\nNormaaltijdlijn: week 1 start promotie · week 4 informatiebijeenkomst ·\\nweek 7 inschrijfdeadline · week 8 start trainingen · eind week 10 clinic 1 ·\\neind week 13 clinic 2 · eind week 16 clinic 3 · week 19 gala.\\n\\n## Clinics\\n\\n| | |\\n|---|---|\\n| Aantal | 3 |\\n| Interval | normaal 3 weken (week 3, 6 en 9 van het traject) |\\n| Duur | 1,5 uur (15–30 min uitleg + 60 min training) |\\n| Voorkeursdag | zaterdag of zondag |\\n| Clinic 3 tot gala | 3 weken, uiterlijk 2,5 week |\\n\\n## Trainingen\\n\\n| | |\\n|---|---|\\n| Trainingsfrequentie deelnemer | 3–5x per week |\\n| Minimale capaciteit sportschool | aantal deelnemers × 3 plekken per week |\\n| Speciale trajectlessen | 2–4 per week, alleen voor deelnemers |\\n| Teamy-rooster zichtbaar | maximaal 2 weken vooruit (tegen no-shows) |\\n| Rust voor gala | laatste 3–4 dagen niet intensief trainen |\\n\\n## Matchmaking en gala\\n\\n| | |\\n|---|---|\\n| Deelnemers in de ring | gemiddeld 16–20 |\\n| Aantal wedstrijden | 8–10 |\\n| Maximaal gewichtsverschil | 3 kg |\\n| Tijd per wedstrijd in draaiboek | 15 min (incl. opkomst, pauze, uitslag) |\\n| Wedstrijdblok bij 10 partijen | 2,5 uur |\\n| Signaal bij weinig aanmeldingen | 15 of minder aanmeldingen ambitie tot de ring: overleg trajectmanager en trainers |\\n\\n## Gala-locatie\\n\\n| | |\\n|---|---|\\n| Ring | 5×5 m |\\n| Ruimte incl. looproutes en jurytafels | 7×7 m |\\n| Hoogte ring | 1,05 m |\\n| Minimale plafondhoogte | 4,5 m (i.v.m. trussen) |\\n\\n## Bemensing eigen gala\\n\\nNaast Operations Manager en Trajectmanager: minimaal 2 stagiaires en\\n4 extra helpers.\\n\\n## Handschoenen trajectmanager op gala\\n\\n2× 16oz rood, 2× 14oz rood, 2× 16oz blauw, 2× 14oz blauw.\\n\\n## Planningsvensters gala\\n\\nStuur bij het plannen op een galadatum in:\\n- begin december tot de kerstvakantie (niet eerder — lastige promotieperiode)\\n- na 1 februari tot het einde van het collegejaar\\n\\nVermijd dat de laatste trainingsmaand december is (feestmomenten), en houd\\nrekening met kerstvakantie, feestweken en introductieperiodes.\\n\\n## Contactnummer deelnemers\\n\\nWhatsApp voor deelnemers en klanten: **+31 6 81665086**\\n\\nDit is het nummer waarnaar we doorverwijzen bij alles wat heen-en-weer vraagt,\\npersoonlijke gegevens nodig heeft of een uitzondering betreft (zie het\\ndoorverwijspatroon in `C1`).\\n\\n**Niet** gebruiken voor commerciële vragen over samenwerkingen, sponsoring of\\npartnerships — die lopen niet via dit nummer.\\n\\n---\\n\\n<!-- BRON: D-data/D2-begrippenlijst.md -->\\n---\\neigenaar: Operations Manager\\nlaatst bijgewerkt: 2026-08-04\\n---\\n\\n# Begrippenlijst\\n\\n**Ambitie tot de Ring** — Formulier dat deelnemers na clinic 1 invullen als ze\\nkans willen maken op een wedstrijd op het gala. Zonder ingevuld formulier geen\\nmatchmaking. Hierin worden ook gewicht en kledingmaten uitgevraagd.\\n\\n**Centrale clinic** — Verplicht meetmoment voor iedereen met ambitie tot de\\nring. Er zijn er drie. Zie `A2`.\\n\\n**Matchmaking** — Het koppelen van deelnemers aan een tegenstander op basis\\nvan gewicht, niveau, techniek, inzet en veiligheid.\\n\\n**Operations Manager** — Eindverantwoordelijke voor het traject aan de\\norganisatiekant. Zie `B1`.\\n\\n**Ringspeaker** — Presentator van de gala-avond. Vast: Ray Martin.\\n\\n**Sociëteit** — Verenigingsgebouw. Meestal het afleveradres voor materialen.\\n\\n**SOMA** — SOMA Fight Club op Bali, waar in de tweede maand van het traject\\neen optioneel trainingskamp wordt aangeboden.\\n\\n**Staredown** — Moment bij clinic 3 waarop gematchte tegenstanders elkaar voor\\nhet eerst officieel tegenover elkaar staan.\\n\\n**Team Rood / Team Blauw** — De twee kampen waarin vechters na clinic 3 worden\\nverdeeld. Vanaf dat moment trainen ze gescheiden met hun eigen coach. Team\\nBlauw komt op de gala-avond altijd als eerste op.\\n\\n**Teamy** — App waarin deelnemers zich inschrijven voor trainingen.\\n\\n**Tikkie (Business)** — Betaalmethode voor materialen en teamkleding.\\n\\n**Tok** — Beschermer voor het kruis. Verplicht.\\n\\n**Trajectmanager** — Verantwoordelijk voor het sportieve deel: aanwezig bij\\ninformatiebijeenkomst en clinics, contact met de sportschool, doorslaggevende\\nstem in de matchmaking. Zie `B1`.\\n\\n**VA-nummer** — Registratienummer bij de Vechtsport Autoriteit. Verplicht om\\nde ring in te mogen. Deelnemers maken dit zelf aan.\\n\\n**Vechtsport Autoriteit (VA)** — Toezichthouder op vechtsport. De sportschool\\nmoet een VA-keurmerk hebben, anders mogen daar ingeschreven vechters de ring\\nniet in.\\n\\n**Windsels** — Bandages om de handen, onder de handschoenen.\\n\\n**WMTA** — De bond waarmee wij samenwerken. Levert jury en scheidsrechter en\\nregelt de ringarts. Contact: zie `B3`.\" } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ],
+      "name": "Constants"
+    },
+    {
+      "parameters": {
+        "documentId": "={{ $env.SHEET_ID }}",
+        "sheetName": "={{ $env.SHEET_TAB }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        400,
+        0
+      ],
+      "name": "Read AI_Trajectdata"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Turn the AI_Trajectdata rows into the text block that goes in system block 2,\n// then append the knowledge base. Dates stay ISO here — humanising them without\n// shifting them is the model's job (draft prompt rule 2).\nconst FIELDS = [\n  'stad','status','start_promotie','informatiebijeenkomst','tijd_informatiebijeenkomst',\n  'locatie_informatiebijeenkomst','deadline_inschrijvingen','start_trainingen',\n  'clinic_1','clinic_2','clinic_3','locatie_clinics','gala_datum','gala_locatie',\n  'gym','trainingsdagen','trainingslocatie','trajectmanager','deelnamekosten','bijzonderheden',\n];\n\nconst rows = $input.all().map(i => i.json).filter(r => (r.vereniging || '').trim() !== '');\n\nconst blocks = rows.map(r => {\n  const sport = (r.sport || '').trim();\n  const lines = ['### ' + r.vereniging + (sport ? ' (' + sport + ')' : '')];\n  for (const f of FIELDS) {\n    const v = (r[f] === undefined || r[f] === null) ? '' : String(r[f]).trim();\n    if (v !== '') lines.push(f + ': ' + v);\n  }\n  return lines.join('\\n');\n});\n\nconst KNOWLEDGE = $('Constants').first().json.knowledge;\n\nconst contextBlock =\n  'TRAJECTORY DATA (bron: AI_TRAJECTDATA)\\n\\n' + blocks.join('\\n\\n') +\n  '\\n\\n---\\n\\nKENNISBANK\\n\\n' + KNOWLEDGE;\n\nconst input = $('Input').first().json;\n\nreturn [{ json: { ...input, contextBlock } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        0
+      ],
+      "name": "Build context"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameter": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \"{\\\"model\\\":\\\"claude-sonnet-5\\\",\\\"max_tokens\\\":4000,\\\"thinking\\\":{\\\"type\\\":\\\"adaptive\\\"},\\\"output_config\\\":{\\\"effort\\\":\\\"medium\\\"},\\\"system\\\":[{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"You write reply drafts on behalf of Mathijs at THENEXT-GEN. Every draft you\\\\nwrite is read by a human before it is sent. Write it as if it will be sent,\\\\nbut never invent anything.\\\\n\\\\nRULES\\\\n1. Use only information from the TRAJECTORY DATA and KNOWLEDGE BASE below.\\\\n   If something is not there, it does not exist.\\\\n2. Never state a date, time, price or location that is not literally present\\\\n   in the trajectory data. Never calculate or infer a date. Copy dates\\\\n   verbatim. Convert ISO dates to natural Dutch or English phrasing\\\\n   (\\\\\\\"2026-10-25\\\\\\\" becomes \\\\\\\"zondag 25 oktober\\\\\\\"), but do not shift them.\\\\n3. If you cannot fully answer, write the part you can and append on its own\\\\n   line: [ONTBREEKT: <what you could not answer and why>]\\\\n4. If you make an assumption, for example about which association the sender\\\\n   belongs to, append: [AANNAME: <the assumption>]\\\\n5. Make no commitments: no exceptions, discounts, reserved places, guarantees\\\\n   or deadline extensions. If the sender asks for one, acknowledge the request\\\\n   and say Mathijs will come back to them personally.\\\\n6. Reply in the sender's language — the whole message, including greeting and\\\\n   sign-off. An English mail gets an English reply throughout; never a Dutch\\\\n   body under an English closing or the other way around.\\\\n7. Answer the question that was actually asked, and only that. Do not attach\\\\n   policy explanations, conditions or warnings the sender did not ask about.\\\\n   If a fact in the knowledge base is related but does not answer their\\\\n   question, leave it out — a nearby fact is not an answer.\\\\n\\\\nTONE\\\\nPersonal and direct, like a human helping someone out. No marketing language,\\\\nno newsletter feel. Informal \\\\\\\"je\\\\\\\" in Dutch.\\\\n\\\\nC1-tone-of-voice.md in the knowledge base defines the form: how to open, the\\\\nreaction to the situation before the answer, the open ending, and how to sign\\\\noff. Follow it exactly, in the sender's language. Its examples are the\\\\nstandard — match them over any instruction above if the two ever differ.\\\\n\\\\nEnd the draft at the sign-off line itself (\\\\\\\"Met vriendelijke groeten,\\\\\\\" or\\\\n\\\\\\\"Kind regards,\\\\\\\") and write nothing after it. The name and contact block are\\\\nadded separately and are deliberately not in the knowledge base — this is not\\\\nmissing information, so never flag it with [ONTBREEKT].\\\\n\\\\nLength follows the question, not a rule. A simple practical question gets two\\\\nto four sentences. Doubt, an objection, or a policy question gets several\\\\nparagraphs that explain the reasoning, not just the outcome.\\\\n\\\\nOUTPUT FORMAT\\\\nReturn the email body only. Then a blank line, then three hyphens, then:\\\\nBron: <which rows and documents you used>\\\\nAny [ONTBREEKT] or [AANNAME] markers go above the hyphens.\\\\nThe human deletes everything from the hyphens down before sending.\\\\n\\\"},{\\\"type\\\":\\\"text\\\",\\\"text\\\":\\\"={{ $json.contextBlock }}\\\",\\\"cache_control\\\":{\\\"type\\\":\\\"ephemeral\\\",\\\"ttl\\\":\\\"1h\\\"}}],\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"=Kanaal: {{ $json.channel }}\\\\nVan: {{ $json.sender }}\\\\nOnderwerp: {{ $json.subject }}\\\\nHerkende vereniging: {{ $json.triage.vereniging || 'onbekend' }}\\\\nWaarschuwing voor reviewer: {{ $json.triage.waarschuwing || 'geen' }}\\\\n\\\\n{{ $json.body }}\\\"}]}\" }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        0
+      ],
+      "name": "Claude draft"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Warning banner (CLAUDE.md §4.3) — a reviewer cue, never a block.\nconst item = $input.first().json;\nconst triage = $('Build context').first().json.triage;\nconst raw = (item.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();\n\nlet draftText = raw;\nif (triage.waarschuwing) {\n  draftText = '⚠ ' + triage.waarschuwing + ' — extra checken voordat je verstuurt\\n' + raw;\n}\n\n// Everything from the '---' line down is reviewer metadata, not part of the mail.\nconst sources = [];\nconst sep = raw.lastIndexOf('\\n---');\nif (sep !== -1) {\n  const tail = raw.slice(sep + 4).trim();\n  if (tail) sources.push(tail);\n}\n\nconst warnings = [];\nif (triage.waarschuwing) warnings.push(triage.waarschuwing);\nfor (const m of raw.matchAll(/\\[(ONTBREEKT|AANNAME):[^\\]]*\\]/g)) warnings.push(m[0]);\n\nreturn [{ json: {\n  category: triage.categorie,\n  urgency: triage.urgentie,\n  association: triage.vereniging,\n  draft_text: draftText,\n  warnings,\n  sources,\n  usage: item.usage || {},\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ],
+      "name": "Shape output"
+    }
+  ],
+  "connections": {
+    "Input": {
+      "main": [
+        [
+          {
+            "node": "Constants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Constants": {
+      "main": [
+        [
+          {
+            "node": "Read AI_Trajectdata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read AI_Trajectdata": {
+      "main": [
+        [
+          {
+            "node": "Build context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build context": {
+      "main": [
+        [
+          {
+            "node": "Claude draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude draft": {
+      "main": [
+        [
+          {
+            "node": "Shape output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

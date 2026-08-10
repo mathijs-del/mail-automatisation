@@ -6,7 +6,10 @@
   "type": "commonjs",
   "scripts": {
     "validate-sheet": "node scripts/validate-sheet.js",
-    "run-fixtures": "node test/run-fixtures.js"
+    "run-fixtures": "node test/run-fixtures.js",
+    "build-workflows": "node scripts/build-workflows.js",
+    "setup-labels": "node scripts/setup-labels.js",
+    "test": "node test/workflow-code.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",

@@ -1,0 +1,191 @@
+{
+  "name": "gmail-adapter-triage",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Gmail Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gmail returns the body base64url-encoded, possibly nested in parts.\nfunction decode(data) {\n  return Buffer.from(String(data).replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');\n}\nfunction findPlainText(payload) {\n  if (!payload) return '';\n  if (payload.mimeType === 'text/plain' && payload.body && payload.body.data) {\n    return decode(payload.body.data);\n  }\n  for (const part of payload.parts || []) {\n    const found = findPlainText(part);\n    if (found) return found;\n  }\n  return '';\n}\n\nreturn $input.all().map(item => {\n  const msg = item.json;\n  const headers = {};\n  for (const h of (msg.payload && msg.payload.headers) || []) {\n    headers[h.name.toLowerCase()] = h.value;\n  }\n  let body = findPlainText(msg.payload) || msg.snippet || '';\n  // Cap runaway threads — the tail of a long quote adds cost without signal.\n  if (body.length > 12000) body = body.slice(0, 12000) + '\\n\\n[...afgekapt]';\n\n  return { json: {\n    messageId: msg.id,\n    threadId: msg.threadId,\n    sender: headers.from || '',\n    subject: headers.subject || '(geen onderwerp)',\n    body,\n  } };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ],
+      "name": "Extract mail"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameter": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \"{\\\"model\\\":\\\"claude-haiku-4-5-20251001\\\",\\\"max_tokens\\\":300,\\\"temperature\\\":0,\\\"system\\\":\\\"You are the mail triage layer for THENEXT-GEN, a Dutch organisation that runs\\\\nmulti-month (kick)boxing programmes for student associations and hospitality\\\\nworkers, each ending in a fight night gala.\\\\n\\\\nClassify the message. Respond with JSON only. No prose, no markdown fences.\\\\n\\\\n{\\\\n  \\\\\\\"categorie\\\\\\\": \\\\\\\"...\\\\\\\",\\\\n  \\\\\\\"urgentie\\\\\\\": \\\\\\\"nu\\\\\\\" | \\\\\\\"deze_week\\\\\\\" | \\\\\\\"fyi\\\\\\\",\\\\n  \\\\\\\"vereniging\\\\\\\": \\\\\\\"<name or null>\\\\\\\",\\\\n  \\\\\\\"taal\\\\\\\": \\\\\\\"nl\\\\\\\" | \\\\\\\"en\\\\\\\",\\\\n  \\\\\\\"samenvatting\\\\\\\": \\\\\\\"<max 15 words, Dutch>\\\\\\\",\\\\n  \\\\\\\"concept_toegestaan\\\\\\\": true | false,\\\\n  \\\\\\\"waarschuwing\\\\\\\": \\\\\\\"<string or null>\\\\\\\"\\\\n}\\\\n\\\\nCATEGORIES\\\\nDEELNEMER_PRAKTISCH   dates, locations, times, what to bring, level required,\\\\n                      how the programme works, training schedule\\\\nDEELNEMER_INSCHRIJF   signing up, availability, payment link problems\\\\nDEELNEMER_FINANCIEEL  invoices, refunds, payment plans, discounts\\\\nDEELNEMER_AFMELDING   quitting, cancelling\\\\nDEELNEMER_MEDISCH     injury, illness, medical clearance, medication, pregnancy\\\\nDEELNEMER_MATCHMAKING opponents, weight classes, whether they will fight\\\\nVERENIGING_BESTUUR    contact from an association board or committee\\\\nPARTNER_SPONSOR       sponsors, breweries, partnerships\\\\nHORECA_OUTREACH       replies to our hospitality outreach campaign\\\\nLEVERANCIER_LOCATIE   venues, catering, equipment, ring announcer, photographer\\\\nINTERN                colleagues, admin, bookkeeper\\\\nRUIS                  newsletters, spam, automated confirmations\\\\n\\\\nClassify by who is writing, not by what the message is about. A participant\\\\nreporting broken gear they bought from us is DEELNEMER_PRAKTISCH, not\\\\nLEVERANCIER_LOCATIE — LEVERANCIER_LOCATIE is only for businesses we buy from\\\\nor hire. When a participant could belong to more than one DEELNEMER_ category,\\\\npick the one matching what they are asking us to do.\\\\n\\\\nconcept_toegestaan = false for DEELNEMER_MEDISCH and RUIS. True otherwise.\\\\n\\\\nSet \\\\\\\"waarschuwing\\\\\\\" to a short Dutch note when the message involves money,\\\\na complaint or dissatisfaction, a request for an exception or promise, or\\\\nanything safety-related. Otherwise null. A draft is still produced; the\\\\nwarning is shown to the human reviewer.\\\\n\\\\n\\\\\\\"vereniging\\\\\\\" must be a name literally present in the message, or null.\\\\nNever infer it from the sender's domain or your own assumptions.\\\\n\\\",\\\"output_config\\\":{\\\"format\\\":{\\\"type\\\":\\\"json_schema\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"categorie\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"DEELNEMER_PRAKTISCH\\\",\\\"DEELNEMER_INSCHRIJF\\\",\\\"DEELNEMER_FINANCIEEL\\\",\\\"DEELNEMER_AFMELDING\\\",\\\"DEELNEMER_MEDISCH\\\",\\\"DEELNEMER_MATCHMAKING\\\",\\\"VERENIGING_BESTUUR\\\",\\\"PARTNER_SPONSOR\\\",\\\"HORECA_OUTREACH\\\",\\\"LEVERANCIER_LOCATIE\\\",\\\"INTERN\\\",\\\"RUIS\\\"]},\\\"urgentie\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"nu\\\",\\\"deze_week\\\",\\\"fyi\\\"]},\\\"vereniging\\\":{\\\"anyOf\\\":[{\\\"type\\\":\\\"string\\\"},{\\\"type\\\":\\\"null\\\"}]},\\\"taal\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"nl\\\",\\\"en\\\"]},\\\"samenvatting\\\":{\\\"type\\\":\\\"string\\\"},\\\"concept_toegestaan\\\":{\\\"type\\\":\\\"boolean\\\"},\\\"waarschuwing\\\":{\\\"anyOf\\\":[{\\\"type\\\":\\\"string\\\"},{\\\"type\\\":\\\"null\\\"}]}},\\\"required\\\":[\\\"categorie\\\",\\\"urgentie\\\",\\\"vereniging\\\",\\\"taal\\\",\\\"samenvatting\\\",\\\"concept_toegestaan\\\",\\\"waarschuwing\\\"],\\\"additionalProperties\\\":false}}},\\\"messages\\\":[{\\\"role\\\":\\\"user\\\",\\\"content\\\":\\\"=From: {{ $json.sender }}\\\\nSubject: {{ $json.subject }}\\\\n\\\\n{{ $json.body }}\\\"}]}\" }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        0
+      ],
+      "name": "Claude triage"
+    },
+    {
+      "parameters": {
+        "jsCode": "const CATEGORY_LABELS = {\n  \"DEELNEMER_PRAKTISCH\": \"AI/Deelnemer\",\n  \"DEELNEMER_INSCHRIJF\": \"AI/Deelnemer\",\n  \"DEELNEMER_FINANCIEEL\": \"AI/Financieel\",\n  \"DEELNEMER_AFMELDING\": \"AI/Deelnemer\",\n  \"DEELNEMER_MEDISCH\": \"AI/Deelnemer\",\n  \"DEELNEMER_MATCHMAKING\": \"AI/Deelnemer\",\n  \"VERENIGING_BESTUUR\": \"AI/Vereniging\",\n  \"PARTNER_SPONSOR\": \"AI/Partner\",\n  \"HORECA_OUTREACH\": \"AI/Partner\",\n  \"LEVERANCIER_LOCATIE\": \"AI/Partner\",\n  \"INTERN\": \"AI/Handmatig\",\n  \"RUIS\": \"AI/Handmatig\"\n};\nconst URGENCY_LABELS = {\n  \"nu\": \"AI/1-Nu\",\n  \"deze_week\": \"AI/2-Deze-week\",\n  \"fyi\": \"AI/3-FYI\"\n};\n\nconst mail = $('Extract mail').first().json;\nconst response = $input.first().json;\nconst text = (response.content || []).filter(b => b.type === 'text').map(b => b.text).join('');\n\nlet triage;\ntry {\n  triage = JSON.parse(text);\n} catch (e) {\n  // Never drop a mail because triage failed — fall back to manual review.\n  triage = {\n    categorie: 'INTERN', urgentie: 'deze_week', vereniging: null, taal: 'nl',\n    samenvatting: 'Triage mislukt, handmatig bekijken',\n    concept_toegestaan: false, waarschuwing: 'Triage gaf geen geldige JSON terug',\n  };\n}\n\nconst labels = [URGENCY_LABELS[triage.urgentie], CATEGORY_LABELS[triage.categorie]].filter(Boolean);\nif (!triage.concept_toegestaan && !labels.includes('AI/Handmatig')) labels.push('AI/Handmatig');\n\nreturn [{ json: { ...mail, triage, labels, triageJson: JSON.stringify(triage) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        0
+      ],
+      "name": "Map labels"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.messageId }}",
+        "labelIds": "={{ $json.labels }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        800,
+        0
+      ],
+      "name": "Apply labels"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "={{ $env.LOG_SHEET_ID }}",
+        "sheetName": "={{ $env.LOG_SHEET_TAB }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "datum": "={{ $now.toISO() }}",
+            "afzender": "={{ $json.sender }}",
+            "categorie": "={{ $json.triage.categorie }}",
+            "urgentie": "={{ $json.triage.urgentie }}",
+            "concept_gemaakt": "={{ $json.triage.concept_toegestaan ? 'wacht' : 'nee' }}",
+            "waarschuwing": "={{ $json.triage.waarschuwing || '' }}",
+            "resultaat": "",
+            "messageId": "={{ $json.messageId }}",
+            "threadId": "={{ $json.threadId }}",
+            "subject": "={{ $json.subject }}",
+            "triage_json": "={{ $json.triageJson }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1000,
+        0
+      ],
+      "name": "Append log row"
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract mail": {
+      "main": [
+        [
+          {
+            "node": "Claude triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude triage": {
+      "main": [
+        [
+          {
+            "node": "Map labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map labels": {
+      "main": [
+        [
+          {
+            "node": "Apply labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply labels": {
+      "main": [
+        [
+          {
+            "node": "Append log row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
