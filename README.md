@@ -99,25 +99,52 @@ Dit is de kwaliteitsmeting én de leerlus — zie *Beter worden* onderaan.
 
 ### 4. Gmail-labels
 
+Maak deze negen labels aan in Gmail (**Instellingen → Labels → Nieuw label
+maken**). Typ de naam inclusief de `/`, dan maakt Gmail er vanzelf een
+genest label van:
+
+```
+AI/1-Nu          AI/2-Deze-week    AI/3-FYI
+AI/Concept-klaar AI/Handmatig
+AI/Deelnemer     AI/Vereniging     AI/Partner      AI/Financieel
+```
+
+Er is ook een script, maar dat heeft een eigen OAuth-refreshtoken nodig —
+met de hand aanmaken is sneller. Wil je het toch scripten:
+
 ```bash
 npm run setup-labels -- --dry-run    # laat zien wat er zou gebeuren
 npm run setup-labels                 # maakt ze echt aan
 ```
 
-Maakt de negen `AI/*`-labels aan. Bestaande labels blijven ongemoeid, dus je
-kunt het script gerust nog eens draaien.
-
 ### 5. n8n
 
-1. In n8n: **Credentials** → een Gmail-credential (OAuth2) voor
-   `info@thenext-gen.com`, en een Google Sheets-credential.
-2. **Settings → Variables**: `ANTHROPIC_API_KEY`, `SHEET_ID`, `SHEET_TAB`,
-   `LOG_SHEET_ID`, `LOG_SHEET_TAB`.
-3. Importeer `workflows/ai-draft-core.json`. Noteer het workflow-ID uit de URL
-   en zet dat als variabele `CORE_WORKFLOW_ID`.
-4. Importeer de twee `gmail-adapter-*.json`.
-5. Koppel in elke workflow de Gmail- en Sheets-nodes aan de juiste credential
-   (import neemt credentials niet mee).
+Er zijn geen n8n-variabelen nodig (die zitten niet in elk abonnement).
+Alles wordt in de interface ingesteld.
+
+**Credentials aanmaken:**
+
+1. **Gmail OAuth2 API** — voor `info@thenext-gen.com`.
+2. **Google Sheets OAuth2 API** — mag dezelfde Client ID/secret gebruiken.
+3. **Header Auth**, met als naam `Anthropic API key`:
+   - Name: `x-api-key`
+   - Value: je Claude API-key
+
+De API-key staat dus in een n8n-credential, nooit in de workflow-JSON.
+
+**Importeren:**
+
+1. Importeer `workflows/ai-draft-core.json` eerst.
+2. Importeer daarna de twee `gmail-adapter-*.json`.
+3. Loop per workflow de nodes langs die nog niet ingesteld zijn:
+   - **Google Sheets**-nodes: kies het spreadsheet en het tabblad
+     (`AI_Trajectdata` in de core, `AI_LOG` in de adapters).
+   - **Gmail**-nodes: kies de Gmail-credential.
+   - **HTTP Request**-nodes: kies de `Anthropic API key` credential.
+   - **Execute Workflow**-node in `gmail-adapter-drafts`: kies
+     `ai-draft-core` uit de lijst.
+
+Import neemt credentials nooit mee — dat koppelen blijft handwerk.
 
 ---
 

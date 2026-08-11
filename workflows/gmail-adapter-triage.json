@@ -38,13 +38,11 @@
       "parameters": {
         "method": "POST",
         "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameter": [
-            {
-              "name": "x-api-key",
-              "value": "={{ $env.ANTHROPIC_API_KEY }}"
-            },
             {
               "name": "anthropic-version",
               "value": "2023-06-01"
@@ -68,7 +66,12 @@
         400,
         0
       ],
-      "name": "Claude triage"
+      "name": "Claude triage",
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "Anthropic API key"
+        }
+      }
     },
     {
       "parameters": {
@@ -99,8 +102,18 @@
     {
       "parameters": {
         "operation": "append",
-        "documentId": "={{ $env.LOG_SHEET_ID }}",
-        "sheetName": "={{ $env.LOG_SHEET_TAB }}",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {

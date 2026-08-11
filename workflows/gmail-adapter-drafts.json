@@ -22,8 +22,18 @@
     },
     {
       "parameters": {
-        "documentId": "={{ $env.LOG_SHEET_ID }}",
-        "sheetName": "={{ $env.LOG_SHEET_TAB }}",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
@@ -48,7 +58,12 @@
     },
     {
       "parameters": {
-        "workflowId": "={{ $env.CORE_WORKFLOW_ID }}",
+        "workflowId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
@@ -110,8 +125,18 @@
     {
       "parameters": {
         "operation": "update",
-        "documentId": "={{ $env.LOG_SHEET_ID }}",
-        "sheetName": "={{ $env.LOG_SHEET_TAB }}",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {

@@ -70,19 +70,35 @@ const TRIAGE_SCHEMA = {
 
 // --- shared node builders -------------------------------------------------
 
+// The API key is NOT put in the workflow JSON. It lives in an n8n
+// "Header Auth" credential (name: x-api-key, value: the key), which the
+// HTTP nodes reference below. n8n Variables are a paid-plan feature, so
+// everything else is a node setting the user picks in the UI.
+const ANTHROPIC_CREDENTIAL_NAME = "Anthropic API key";
+
 function anthropicHeaders() {
   return {
     parameters: {
+      authentication: "genericCredentialType",
+      genericAuthType: "httpHeaderAuth",
       sendHeaders: true,
       headerParameters: {
         parameter: [
-          { name: "x-api-key", value: "={{ $env.ANTHROPIC_API_KEY }}" },
           { name: "anthropic-version", value: "2023-06-01" },
           { name: "content-type", value: "application/json" },
         ],
       },
     },
+    credentials: {
+      httpHeaderAuth: { name: ANTHROPIC_CREDENTIAL_NAME },
+    },
   };
+}
+
+// Rendered as a picker in n8n. Leaving the value empty makes the node show
+// as unconfigured, which is the intended prompt to choose the sheet.
+function sheetPicker() {
+  return { __rl: true, value: "", mode: "list", cachedResultName: "" };
 }
 
 function triageHttpNode(name, position) {
@@ -114,6 +130,7 @@ function triageHttpNode(name, position) {
     typeVersion: 4.2,
     position,
     name,
+    credentials: anthropicHeaders().credentials,
   };
 }
 
@@ -247,8 +264,8 @@ return [{ json: {
       `return [{ json: { knowledge: ${JSON.stringify(knowledge)} } }];`),
     {
       parameters: {
-        documentId: "={{ $env.SHEET_ID }}",
-        sheetName: "={{ $env.SHEET_TAB }}",
+        documentId: sheetPicker(),
+        sheetName: sheetPicker(),
         options: {},
       },
       type: "n8n-nodes-base.googleSheets",
@@ -382,8 +399,8 @@ return [{ json: { ...mail, triage, labels, triageJson: JSON.stringify(triage) } 
     {
       parameters: {
         operation: "append",
-        documentId: "={{ $env.LOG_SHEET_ID }}",
-        sheetName: "={{ $env.LOG_SHEET_TAB }}",
+        documentId: sheetPicker(),
+        sheetName: sheetPicker(),
         columns: {
           mappingMode: "defineBelow",
           value: {
@@ -460,8 +477,8 @@ return $input.all()
     },
     {
       parameters: {
-        documentId: "={{ $env.LOG_SHEET_ID }}",
-        sheetName: "={{ $env.LOG_SHEET_TAB }}",
+        documentId: sheetPicker(),
+        sheetName: sheetPicker(),
         options: {},
       },
       type: "n8n-nodes-base.googleSheets",
@@ -472,7 +489,7 @@ return $input.all()
     codeNode("Pending drafts", [400, 0], pendingCode),
     {
       parameters: {
-        workflowId: "={{ $env.CORE_WORKFLOW_ID }}",
+        workflowId: { __rl: true, value: "", mode: "list", cachedResultName: "" },
         workflowInputs: {
           mappingMode: "defineBelow",
           value: {
@@ -521,8 +538,8 @@ return $input.all()
     {
       parameters: {
         operation: "update",
-        documentId: "={{ $env.LOG_SHEET_ID }}",
-        sheetName: "={{ $env.LOG_SHEET_TAB }}",
+        documentId: sheetPicker(),
+        sheetName: sheetPicker(),
         columns: {
           mappingMode: "defineBelow",
           value: {
