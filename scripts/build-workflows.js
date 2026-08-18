@@ -101,21 +101,11 @@ function sheetPicker() {
   return { __rl: true, value: "", mode: "list", cachedResultName: "" };
 }
 
-function triageHttpNode(name, position) {
-  const body = {
-    model: TRIAGE_MODEL,
-    max_tokens: 300,
-    temperature: 0,
-    system: triagePrompt,
-    output_config: { format: { type: "json_schema", schema: TRIAGE_SCHEMA } },
-    messages: [
-      {
-        role: "user",
-        content:
-          "=From: {{ $json.sender }}\nSubject: {{ $json.subject }}\n\n{{ $json.body }}",
-      },
-    ],
-  };
+// The request body is assembled in a preceding Code node, never inlined into
+// the jsonBody expression. Inlining it puts the mail's own {{ }} placeholders
+// inside n8n's outer {{ }} expression, and the nested braces make n8n's parser
+// fail with "invalid syntax".
+function anthropicHttpNode(name, position, timeout) {
   return {
     parameters: {
       method: "POST",
@@ -123,8 +113,8 @@ function triageHttpNode(name, position) {
       ...anthropicHeaders().parameters,
       sendBody: true,
       specifyBody: "json",
-      jsonBody: `={{ ${JSON.stringify(JSON.stringify(body))} }}`,
-      options: { timeout: 60000 },
+      jsonBody: "={{ JSON.stringify($json.requestBody) }}",
+      options: { timeout },
     },
     type: "n8n-nodes-base.httpRequest",
     typeVersion: 4.2,
@@ -132,6 +122,30 @@ function triageHttpNode(name, position) {
     name,
     credentials: anthropicHeaders().credentials,
   };
+}
+
+// Builds the triage request per incoming mail. Runs for all items, so a batch
+// of new mail is handled in one pass.
+function buildTriageRequestCode() {
+  return `
+const SYSTEM = ${JSON.stringify(triagePrompt)};
+const SCHEMA = ${JSON.stringify(TRIAGE_SCHEMA)};
+
+return $input.all().map(item => {
+  const mail = item.json;
+  return { json: { ...mail, requestBody: {
+    model: ${JSON.stringify(TRIAGE_MODEL)},
+    max_tokens: 300,
+    temperature: 0,
+    system: SYSTEM,
+    output_config: { format: { type: 'json_schema', schema: SCHEMA } },
+    messages: [{
+      role: 'user',
+      content: 'From: ' + mail.sender + '\\nSubject: ' + mail.subject + '\\n\\n' + mail.body,
+    }],
+  } } };
+});
+`.trim();
 }
 
 function codeNode(name, position, jsCode) {
@@ -187,33 +201,33 @@ const contextBlock =
   '\\n\\n---\\n\\nKENNISBANK\\n\\n' + KNOWLEDGE;
 
 const input = $('Input').first().json;
+const triage = input.triage || {};
 
-return [{ json: { ...input, contextBlock } }];
+// Assembled here rather than in the HTTP node's jsonBody: the mail body can
+// contain braces, and nesting those inside n8n's {{ }} breaks its parser.
+const requestBody = {
+  model: DRAFT_MODEL_ID,
+  max_tokens: 4000,
+  thinking: { type: 'adaptive' },
+  output_config: { effort: 'medium' },
+  system: [
+    { type: 'text', text: DRAFT_PROMPT },
+    { type: 'text', text: contextBlock, cache_control: { type: 'ephemeral', ttl: '1h' } },
+  ],
+  messages: [{
+    role: 'user',
+    content:
+      'Kanaal: ' + (input.channel || 'email') + '\\n' +
+      'Van: ' + (input.sender || '') + '\\n' +
+      'Onderwerp: ' + (input.subject || '') + '\\n' +
+      'Herkende vereniging: ' + (triage.vereniging || 'onbekend') + '\\n' +
+      'Waarschuwing voor reviewer: ' + (triage.waarschuwing || 'geen') + '\\n\\n' +
+      (input.body || ''),
+  }],
+};
+
+return [{ json: { ...input, triage, contextBlock, requestBody } }];
 `.trim();
-
-  const draftBody = {
-    model: DRAFT_MODEL,
-    max_tokens: 4000,
-    thinking: { type: "adaptive" },
-    output_config: { effort: "medium" },
-    system: [
-      { type: "text", text: draftPrompt },
-      {
-        type: "text",
-        text: "={{ $json.contextBlock }}",
-        cache_control: { type: "ephemeral", ttl: "1h" },
-      },
-    ],
-    messages: [
-      {
-        role: "user",
-        content:
-          "=Kanaal: {{ $json.channel }}\nVan: {{ $json.sender }}\nOnderwerp: {{ $json.subject }}\n" +
-          "Herkende vereniging: {{ $json.triage.vereniging || 'onbekend' }}\n" +
-          "Waarschuwing voor reviewer: {{ $json.triage.waarschuwing || 'geen' }}\n\n{{ $json.body }}",
-      },
-    ],
-  };
 
   const shapeOutputCode = `
 // Warning banner (CLAUDE.md §4.3) — a reviewer cue, never a block.
@@ -273,22 +287,11 @@ return [{ json: {
       position: [400, 0],
       name: "Read AI_Trajectdata",
     },
-    codeNode("Build context", [600, 0], buildContextCode),
-    {
-      parameters: {
-        method: "POST",
-        url: ANTHROPIC_URL,
-        ...anthropicHeaders().parameters,
-        sendBody: true,
-        specifyBody: "json",
-        jsonBody: `={{ ${JSON.stringify(JSON.stringify(draftBody))} }}`,
-        options: { timeout: 180000 },
-      },
-      type: "n8n-nodes-base.httpRequest",
-      typeVersion: 4.2,
-      position: [800, 0],
-      name: "Claude draft",
-    },
+    codeNode("Build context", [600, 0],
+      `const DRAFT_MODEL_ID = ${JSON.stringify(DRAFT_MODEL)};\n` +
+      `const DRAFT_PROMPT = ${JSON.stringify(draftPrompt)};\n` +
+      buildContextCode),
+    anthropicHttpNode("Claude draft", [800, 0], 180000),
     codeNode("Shape output", [1000, 0], shapeOutputCode),
   ];
 
@@ -352,26 +355,35 @@ return $input.all().map(item => {
 const CATEGORY_LABELS = ${JSON.stringify(CATEGORY_LABELS, null, 2)};
 const URGENCY_LABELS = ${JSON.stringify(URGENCY_LABELS, null, 2)};
 
-const mail = $('Extract mail').first().json;
-const response = $input.first().json;
-const text = (response.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+// Pair each Claude response with its mail by index — a Gmail poll can return
+// several new messages, and the HTTP node preserves item order.
+const mails = $('Build triage request').all();
 
-let triage;
-try {
-  triage = JSON.parse(text);
-} catch (e) {
-  // Never drop a mail because triage failed — fall back to manual review.
-  triage = {
-    categorie: 'INTERN', urgentie: 'deze_week', vereniging: null, taal: 'nl',
-    samenvatting: 'Triage mislukt, handmatig bekijken',
-    concept_toegestaan: false, waarschuwing: 'Triage gaf geen geldige JSON terug',
-  };
-}
+return $input.all().map((item, i) => {
+  const mail = mails[i] ? mails[i].json : {};
+  const text = (item.json.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 
-const labels = [URGENCY_LABELS[triage.urgentie], CATEGORY_LABELS[triage.categorie]].filter(Boolean);
-if (!triage.concept_toegestaan && !labels.includes('AI/Handmatig')) labels.push('AI/Handmatig');
+  let triage;
+  try {
+    triage = JSON.parse(text);
+  } catch (e) {
+    // Never drop a mail because triage failed — fall back to manual review.
+    triage = {
+      categorie: 'INTERN', urgentie: 'deze_week', vereniging: null, taal: 'nl',
+      samenvatting: 'Triage mislukt, handmatig bekijken',
+      concept_toegestaan: false, waarschuwing: 'Triage gaf geen geldige JSON terug',
+    };
+  }
 
-return [{ json: { ...mail, triage, labels, triageJson: JSON.stringify(triage) } }];
+  const labels = [URGENCY_LABELS[triage.urgentie], CATEGORY_LABELS[triage.categorie]].filter(Boolean);
+  if (!triage.concept_toegestaan && !labels.includes('AI/Handmatig')) labels.push('AI/Handmatig');
+
+  return { json: {
+    messageId: mail.messageId, threadId: mail.threadId, sender: mail.sender,
+    subject: mail.subject, body: mail.body,
+    triage, labels, triageJson: JSON.stringify(triage),
+  } };
+});
 `.trim();
 
   const nodes = [
@@ -383,8 +395,9 @@ return [{ json: { ...mail, triage, labels, triageJson: JSON.stringify(triage) } 
       name: "Gmail Trigger",
     },
     codeNode("Extract mail", [200, 0], extractCode),
-    triageHttpNode("Claude triage", [400, 0]),
-    codeNode("Map labels", [600, 0], mapLabelsCode),
+    codeNode("Build triage request", [400, 0], buildTriageRequestCode()),
+    anthropicHttpNode("Claude triage", [600, 0], 60000),
+    codeNode("Map labels", [800, 0], mapLabelsCode),
     {
       parameters: {
         operation: "addLabels",
@@ -393,7 +406,7 @@ return [{ json: { ...mail, triage, labels, triageJson: JSON.stringify(triage) } 
       },
       type: "n8n-nodes-base.gmail",
       typeVersion: 2.1,
-      position: [800, 0],
+      position: [1000, 0],
       name: "Apply labels",
     },
     {
@@ -421,7 +434,7 @@ return [{ json: { ...mail, triage, labels, triageJson: JSON.stringify(triage) } 
       },
       type: "n8n-nodes-base.googleSheets",
       typeVersion: 4.5,
-      position: [1000, 0],
+      position: [1200, 0],
       name: "Append log row",
     },
   ];
@@ -431,7 +444,8 @@ return [{ json: { ...mail, triage, labels, triageJson: JSON.stringify(triage) } 
     nodes,
     connections: connect([
       ["Gmail Trigger", "Extract mail"],
-      ["Extract mail", "Claude triage"],
+      ["Extract mail", "Build triage request"],
+      ["Build triage request", "Claude triage"],
       ["Claude triage", "Map labels"],
       ["Map labels", "Apply labels"],
       ["Apply labels", "Append log row"],

@@ -26,7 +26,11 @@ function runCodeNode(code, { input, refs = {}, now }) {
   };
   const $ = (nodeName) => {
     assert(refs[nodeName], `code referenced unknown node "${nodeName}"`);
-    return { first: () => refs[nodeName][0], item: refs[nodeName][0] };
+    return {
+      all: () => refs[nodeName],
+      first: () => refs[nodeName][0],
+      item: refs[nodeName][0],
+    };
   };
   const fn = new Function("$input", "$", "$now", "Buffer", code);
   return fn($input, $, now, Buffer);
@@ -129,13 +133,32 @@ const mapCode = loadCode("gmail-adapter-triage.json", "Map labels");
 const mail = { messageId: "m1", threadId: "t1", sender: "a@b.nl", subject: "s", body: "b" };
 const claudeResponse = (obj) => [{ json: { content: [{ type: "text", text: JSON.stringify(obj) }] } }];
 
+check("pairs each response with its own mail in a batch", () => {
+  const out = runCodeNode(mapCode, {
+    input: [
+      claudeResponse({ categorie: "DEELNEMER_PRAKTISCH", urgentie: "nu", vereniging: "Okeanos",
+        taal: "nl", samenvatting: "x", concept_toegestaan: true, waarschuwing: null })[0],
+      claudeResponse({ categorie: "RUIS", urgentie: "fyi", vereniging: null,
+        taal: "nl", samenvatting: "y", concept_toegestaan: false, waarschuwing: null })[0],
+    ],
+    refs: { "Build triage request": [
+      { json: { ...mail, messageId: "m1" } },
+      { json: { ...mail, messageId: "m2" } },
+    ] },
+  });
+  assert.strictEqual(out.length, 2, "should return one item per mail");
+  assert.strictEqual(out[0].json.messageId, "m1");
+  assert.strictEqual(out[1].json.messageId, "m2");
+  assert(out[1].json.labels.includes("AI/Handmatig"), "second mail keeps its own triage");
+});
+
 check("maps a participant question to urgency + Deelnemer labels", () => {
   const out = runCodeNode(mapCode, {
     input: claudeResponse({
       categorie: "DEELNEMER_PRAKTISCH", urgentie: "nu", vereniging: "Okeanos",
       taal: "nl", samenvatting: "x", concept_toegestaan: true, waarschuwing: null,
     }),
-    refs: { "Extract mail": [{ json: mail }] },
+    refs: { "Build triage request": [{ json: mail }] },
   });
   assert.deepStrictEqual(out[0].json.labels, ["AI/1-Nu", "AI/Deelnemer"]);
   assert.strictEqual(out[0].json.triage.vereniging, "Okeanos");
@@ -147,7 +170,7 @@ check("adds AI/Handmatig when no draft is allowed", () => {
       categorie: "DEELNEMER_MEDISCH", urgentie: "nu", vereniging: null,
       taal: "nl", samenvatting: "x", concept_toegestaan: false, waarschuwing: "medisch",
     }),
-    refs: { "Extract mail": [{ json: mail }] },
+    refs: { "Build triage request": [{ json: mail }] },
   });
   assert(out[0].json.labels.includes("AI/Handmatig"));
 });
@@ -158,7 +181,7 @@ check("does not duplicate AI/Handmatig for RUIS", () => {
       categorie: "RUIS", urgentie: "fyi", vereniging: null,
       taal: "nl", samenvatting: "x", concept_toegestaan: false, waarschuwing: null,
     }),
-    refs: { "Extract mail": [{ json: mail }] },
+    refs: { "Build triage request": [{ json: mail }] },
   });
   const count = out[0].json.labels.filter((l) => l === "AI/Handmatig").length;
   assert.strictEqual(count, 1, `expected one AI/Handmatig, got ${count}`);
@@ -167,7 +190,7 @@ check("does not duplicate AI/Handmatig for RUIS", () => {
 check("falls back to manual review when triage returns invalid JSON", () => {
   const out = runCodeNode(mapCode, {
     input: [{ json: { content: [{ type: "text", text: "not json at all" }] } }],
-    refs: { "Extract mail": [{ json: mail }] },
+    refs: { "Build triage request": [{ json: mail }] },
   });
   assert.strictEqual(out[0].json.triage.concept_toegestaan, false);
   assert(out[0].json.labels.includes("AI/Handmatig"));
@@ -260,6 +283,36 @@ check("survives a corrupt triage_json cell", () => {
   });
   assert.strictEqual(out.length, 1);
   assert.strictEqual(out[0].json.language_hint, "nl", "should fall back to nl");
+});
+
+console.log("\nBuild triage request (gmail-adapter-triage)");
+
+const buildReqCode = loadCode("gmail-adapter-triage.json", "Build triage request");
+
+check("builds a body that survives braces in the mail text", () => {
+  const out = runCodeNode(buildReqCode, {
+    input: [{ json: {
+      messageId: "m1", threadId: "t1", sender: "Sem <sem@ex.nl>",
+      subject: "Vraag {met accolades}",
+      body: "Wanneer is clinic 1? {{ niet interpreteren }}",
+    } }],
+  });
+  const rb = out[0].json.requestBody;
+  assert.strictEqual(rb.model, "claude-haiku-4-5-20251001");
+  assert(rb.messages[0].content.includes("{{ niet interpreteren }}"), "body text must survive verbatim");
+  assert.doesNotThrow(() => JSON.parse(JSON.stringify(rb)), "body must serialise");
+  assert.strictEqual(out[0].json.messageId, "m1", "mail fields must pass through");
+});
+
+check("builds one request per mail in a batch", () => {
+  const out = runCodeNode(buildReqCode, {
+    input: [
+      { json: { messageId: "m1", sender: "a@b.nl", subject: "s1", body: "b1" } },
+      { json: { messageId: "m2", sender: "c@d.nl", subject: "s2", body: "b2" } },
+    ],
+  });
+  assert.strictEqual(out.length, 2);
+  assert(out[1].json.requestBody.messages[0].content.includes("b2"));
 });
 
 console.log(`\n${passed} checks passed.\n`);
