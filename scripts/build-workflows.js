@@ -81,14 +81,13 @@ function anthropicHeaders() {
     parameters: {
       authentication: "genericCredentialType",
       genericAuthType: "httpHeaderAuth",
-      // Only anthropic-version here. n8n's JSON body mode sets Content-Type
-      // itself; adding our own produced a duplicate header and a 400.
+      // Headers as a single JSON field rather than a keypair list: n8n
+      // silently dropped the keypair form on import, leaving the node with no
+      // anthropic-version header and a 400 from the API. Content-Type is not
+      // set here — n8n's JSON body mode adds it, and a duplicate also 400s.
       sendHeaders: true,
-      headerParameters: {
-        parameter: [
-          { name: "anthropic-version", value: "2023-06-01" },
-        ],
-      },
+      specifyHeaders: "json",
+      jsonHeaders: '{"anthropic-version": "2023-06-01"}',
     },
     credentials: {
       httpHeaderAuth: { name: ANTHROPIC_CREDENTIAL_NAME },
