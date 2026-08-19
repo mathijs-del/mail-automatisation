@@ -361,15 +361,16 @@ const URGENCY_LABELS = ${JSON.stringify(URGENCY_LABELS, null, 2)};
 // list. A name that has no matching label is dropped with a warning rather
 // than failing the whole mail.
 const idByName = {};
-for (const l of $('Fetch labels').all()) {
+for (const l of $input.all()) {
   if (l.json && l.json.name) idByName[l.json.name] = l.json.id;
 }
 
 // Pair each Claude response with its mail by index — a Gmail poll can return
 // several new messages, and the HTTP node preserves item order.
 const mails = $('Build triage request').all();
+const responses = $('Claude triage').all();
 
-return $input.all().map((item, i) => {
+return responses.map((item, i) => {
   const mail = mails[i] ? mails[i].json : {};
   const text = (item.json.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 
@@ -413,7 +414,7 @@ return $input.all().map((item, i) => {
       parameters: { resource: "label", operation: "getAll", returnAll: true },
       type: "n8n-nodes-base.gmail",
       typeVersion: 2.1,
-      position: [200, 200],
+      position: [800, 0],
       name: "Fetch labels",
       // One call per run; the label set is tiny and rarely changes.
       executeOnce: true,
@@ -430,7 +431,7 @@ return $input.all().map((item, i) => {
       },
       type: "n8n-nodes-base.gmail",
       typeVersion: 2.1,
-      position: [1000, 0],
+      position: [1200, 0],
       name: "Apply labels",
     },
     {
@@ -458,7 +459,7 @@ return $input.all().map((item, i) => {
       },
       type: "n8n-nodes-base.googleSheets",
       typeVersion: 4.5,
-      position: [1200, 0],
+      position: [1400, 0],
       name: "Append log row",
     },
   ];
@@ -467,10 +468,11 @@ return $input.all().map((item, i) => {
     name: "gmail-adapter-triage",
     nodes,
     connections: connect([
-      ["Gmail Trigger", ["Fetch labels", "Extract mail"]],
+      ["Gmail Trigger", "Extract mail"],
       ["Extract mail", "Build triage request"],
       ["Build triage request", "Claude triage"],
-      ["Claude triage", "Map labels"],
+      ["Claude triage", "Fetch labels"],
+      ["Fetch labels", "Map labels"],
       ["Map labels", "Apply labels"],
       ["Apply labels", "Append log row"],
     ]),

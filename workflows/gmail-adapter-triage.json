@@ -31,8 +31,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        200,
-        200
+        800,
+        0
       ],
       "name": "Fetch labels",
       "executeOnce": true
@@ -92,7 +92,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const CATEGORY_LABELS = {\n  \"DEELNEMER_PRAKTISCH\": \"AI/Deelnemer\",\n  \"DEELNEMER_INSCHRIJF\": \"AI/Deelnemer\",\n  \"DEELNEMER_FINANCIEEL\": \"AI/Financieel\",\n  \"DEELNEMER_AFMELDING\": \"AI/Deelnemer\",\n  \"DEELNEMER_MEDISCH\": \"AI/Deelnemer\",\n  \"DEELNEMER_MATCHMAKING\": \"AI/Deelnemer\",\n  \"VERENIGING_BESTUUR\": \"AI/Vereniging\",\n  \"PARTNER_SPONSOR\": \"AI/Partner\",\n  \"HORECA_OUTREACH\": \"AI/Partner\",\n  \"LEVERANCIER_LOCATIE\": \"AI/Partner\",\n  \"INTERN\": \"AI/Handmatig\",\n  \"RUIS\": \"AI/Handmatig\"\n};\nconst URGENCY_LABELS = {\n  \"nu\": \"AI/1-Nu\",\n  \"deze_week\": \"AI/2-Deze-week\",\n  \"fyi\": \"AI/3-FYI\"\n};\n\n// Gmail's API takes label IDs, not names, so resolve them from the live label\n// list. A name that has no matching label is dropped with a warning rather\n// than failing the whole mail.\nconst idByName = {};\nfor (const l of $('Fetch labels').all()) {\n  if (l.json && l.json.name) idByName[l.json.name] = l.json.id;\n}\n\n// Pair each Claude response with its mail by index — a Gmail poll can return\n// several new messages, and the HTTP node preserves item order.\nconst mails = $('Build triage request').all();\n\nreturn $input.all().map((item, i) => {\n  const mail = mails[i] ? mails[i].json : {};\n  const text = (item.json.content || []).filter(b => b.type === 'text').map(b => b.text).join('');\n\n  let triage;\n  try {\n    triage = JSON.parse(text);\n  } catch (e) {\n    // Never drop a mail because triage failed — fall back to manual review.\n    triage = {\n      categorie: 'INTERN', urgentie: 'deze_week', vereniging: null, taal: 'nl',\n      samenvatting: 'Triage mislukt, handmatig bekijken',\n      concept_toegestaan: false, waarschuwing: 'Triage gaf geen geldige JSON terug',\n    };\n  }\n\n  const labels = [URGENCY_LABELS[triage.urgentie], CATEGORY_LABELS[triage.categorie]].filter(Boolean);\n  if (!triage.concept_toegestaan && !labels.includes('AI/Handmatig')) labels.push('AI/Handmatig');\n\n  const labelIds = labels.map(n => idByName[n]).filter(Boolean);\n  const ontbrekend = labels.filter(n => !idByName[n]);\n\n  return { json: {\n    messageId: mail.messageId, threadId: mail.threadId, sender: mail.sender,\n    subject: mail.subject, body: mail.body,\n    triage, labels, labelIds,\n    ontbrekendeLabels: ontbrekend,\n    triageJson: JSON.stringify(triage),\n  } };\n});"
+        "jsCode": "const CATEGORY_LABELS = {\n  \"DEELNEMER_PRAKTISCH\": \"AI/Deelnemer\",\n  \"DEELNEMER_INSCHRIJF\": \"AI/Deelnemer\",\n  \"DEELNEMER_FINANCIEEL\": \"AI/Financieel\",\n  \"DEELNEMER_AFMELDING\": \"AI/Deelnemer\",\n  \"DEELNEMER_MEDISCH\": \"AI/Deelnemer\",\n  \"DEELNEMER_MATCHMAKING\": \"AI/Deelnemer\",\n  \"VERENIGING_BESTUUR\": \"AI/Vereniging\",\n  \"PARTNER_SPONSOR\": \"AI/Partner\",\n  \"HORECA_OUTREACH\": \"AI/Partner\",\n  \"LEVERANCIER_LOCATIE\": \"AI/Partner\",\n  \"INTERN\": \"AI/Handmatig\",\n  \"RUIS\": \"AI/Handmatig\"\n};\nconst URGENCY_LABELS = {\n  \"nu\": \"AI/1-Nu\",\n  \"deze_week\": \"AI/2-Deze-week\",\n  \"fyi\": \"AI/3-FYI\"\n};\n\n// Gmail's API takes label IDs, not names, so resolve them from the live label\n// list. A name that has no matching label is dropped with a warning rather\n// than failing the whole mail.\nconst idByName = {};\nfor (const l of $input.all()) {\n  if (l.json && l.json.name) idByName[l.json.name] = l.json.id;\n}\n\n// Pair each Claude response with its mail by index — a Gmail poll can return\n// several new messages, and the HTTP node preserves item order.\nconst mails = $('Build triage request').all();\nconst responses = $('Claude triage').all();\n\nreturn responses.map((item, i) => {\n  const mail = mails[i] ? mails[i].json : {};\n  const text = (item.json.content || []).filter(b => b.type === 'text').map(b => b.text).join('');\n\n  let triage;\n  try {\n    triage = JSON.parse(text);\n  } catch (e) {\n    // Never drop a mail because triage failed — fall back to manual review.\n    triage = {\n      categorie: 'INTERN', urgentie: 'deze_week', vereniging: null, taal: 'nl',\n      samenvatting: 'Triage mislukt, handmatig bekijken',\n      concept_toegestaan: false, waarschuwing: 'Triage gaf geen geldige JSON terug',\n    };\n  }\n\n  const labels = [URGENCY_LABELS[triage.urgentie], CATEGORY_LABELS[triage.categorie]].filter(Boolean);\n  if (!triage.concept_toegestaan && !labels.includes('AI/Handmatig')) labels.push('AI/Handmatig');\n\n  const labelIds = labels.map(n => idByName[n]).filter(Boolean);\n  const ontbrekend = labels.filter(n => !idByName[n]);\n\n  return { json: {\n    messageId: mail.messageId, threadId: mail.threadId, sender: mail.sender,\n    subject: mail.subject, body: mail.body,\n    triage, labels, labelIds,\n    ontbrekendeLabels: ontbrekend,\n    triageJson: JSON.stringify(triage),\n  } };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -111,7 +111,7 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        1000,
+        1200,
         0
       ],
       "name": "Apply labels"
@@ -152,7 +152,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1200,
+        1400,
         0
       ],
       "name": "Append log row"
@@ -162,11 +162,6 @@
     "Gmail Trigger": {
       "main": [
         [
-          {
-            "node": "Fetch labels",
-            "type": "main",
-            "index": 0
-          },
           {
             "node": "Extract mail",
             "type": "main",
@@ -198,6 +193,17 @@
       ]
     },
     "Claude triage": {
+      "main": [
+        [
+          {
+            "node": "Fetch labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch labels": {
       "main": [
         [
           {
