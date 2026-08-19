@@ -335,20 +335,33 @@ function findPlainText(payload) {
 
 return $input.all().map(item => {
   const msg = item.json;
+
+  // The Gmail trigger's shape varies with the Simplify toggle and the Format
+  // option, so read every variant rather than assuming the raw payload is
+  // there. Getting this wrong silently empties sender/subject/body, and
+  // triage then classifies an empty mail as RUIS.
   const headers = {};
   for (const h of (msg.payload && msg.payload.headers) || []) {
     headers[h.name.toLowerCase()] = h.value;
   }
-  let body = findPlainText(msg.payload) || msg.snippet || '';
+  // Simplified output puts the same values at the top level, or under .headers.
+  const flat = msg.headers && !Array.isArray(msg.headers) ? msg.headers : {};
+  const sender = headers.from || msg.from || flat.from || flat.From || '';
+  const subject = headers.subject || msg.subject || flat.subject || flat.Subject || '';
+
+  let body = findPlainText(msg.payload) || msg.text || msg.textAsHtml || msg.snippet || '';
   // Cap runaway threads — the tail of a long quote adds cost without signal.
   if (body.length > 12000) body = body.slice(0, 12000) + '\\n\\n[...afgekapt]';
 
   return { json: {
     messageId: msg.id,
     threadId: msg.threadId,
-    sender: headers.from || '',
-    subject: headers.subject || '(geen onderwerp)',
+    sender,
+    subject: subject || '(geen onderwerp)',
     body,
+    // Surfaced so a misread trigger payload is visible in the log instead of
+    // quietly turning every mail into RUIS.
+    extractieLeeg: (!sender && !subject && !body) ? 'ja' : '',
   } };
 });
 `.trim();

@@ -128,6 +128,30 @@ check("truncates a runaway thread", () => {
   assert(out[0].json.body.endsWith("[...afgekapt]"));
 });
 
+check("reads sender and subject from the simplified trigger shape", () => {
+  // n8n's Gmail trigger returns flat fields when Simplify is on, or when the
+  // Format option omits the raw payload. Either way the mail must survive.
+  const out = runCodeNode(extractCode, {
+    input: [{ json: {
+      id: "m9", threadId: "t9",
+      from: "Sem <sem@ex.nl>", subject: "Vraag over clinic",
+      text: "Hoi, wanneer is clinic 1?", snippet: "Hoi, wanneer",
+    } }],
+  });
+  assert.strictEqual(out[0].json.sender, "Sem <sem@ex.nl>");
+  assert.strictEqual(out[0].json.subject, "Vraag over clinic");
+  assert.strictEqual(out[0].json.body, "Hoi, wanneer is clinic 1?");
+  assert.strictEqual(out[0].json.extractieLeeg, "");
+});
+
+check("flags a mail it could not read anything out of", () => {
+  const out = runCodeNode(extractCode, {
+    input: [{ json: { id: "m0", threadId: "t0" } }],
+  });
+  assert.strictEqual(out[0].json.extractieLeeg, "ja",
+    "an unreadable trigger payload must be visible, not silently RUIS");
+});
+
 console.log("\nMap labels (gmail-adapter-triage)");
 
 const mapCode = loadCode("gmail-adapter-triage.json", "Map labels");
