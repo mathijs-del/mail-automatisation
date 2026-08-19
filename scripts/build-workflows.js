@@ -346,8 +346,25 @@ return $input.all().map(item => {
   }
   // Simplified output puts the same values at the top level, or under .headers.
   const flat = msg.headers && !Array.isArray(msg.headers) ? msg.headers : {};
-  const sender = headers.from || msg.from || flat.from || flat.From || '';
-  const subject = headers.subject || msg.subject || flat.subject || flat.Subject || '';
+
+  // An address field can be a plain string OR a mailparser-style object
+  // ({value:[{address,name}], text}). Taking the object verbatim wrote raw
+  // JSON into the log and sent "[object Object]" to the classifier.
+  function asAddress(v) {
+    if (!v) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v.text === 'string' && v.text) return v.text;
+    const first = Array.isArray(v.value) ? v.value[0] : null;
+    if (first) return first.name ? first.name + ' <' + first.address + '>' : (first.address || '');
+    return '';
+  }
+  function asText(v) {
+    if (!v) return '';
+    return typeof v === 'string' ? v : (typeof v.text === 'string' ? v.text : '');
+  }
+
+  const sender = asAddress(headers.from || msg.from || flat.from || flat.From);
+  const subject = asText(headers.subject || msg.subject || flat.subject || flat.Subject);
 
   let body = findPlainText(msg.payload) || msg.text || msg.textAsHtml || msg.snippet || '';
   // Cap runaway threads — the tail of a long quote adds cost without signal.

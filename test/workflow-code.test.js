@@ -152,6 +152,36 @@ check("flags a mail it could not read anything out of", () => {
     "an unreadable trigger payload must be visible, not silently RUIS");
 });
 
+check("flattens a mailparser-style from object into a readable string", () => {
+  // This is what n8n's simplified Gmail trigger actually returns.
+  const out = runCodeNode(extractCode, {
+    input: [{ json: {
+      id: "m10", threadId: "t10",
+      from: {
+        value: [{ address: "mathijs@example.nl", name: "Mathijs Schoonhoven" }],
+        text: "Mathijs Schoonhoven <mathijs@example.nl>",
+      },
+      subject: "Horeca Boxing Amsterdam",
+      text: "Hi, Ik heb interesse om mee te doen.",
+    } }],
+  });
+  assert.strictEqual(out[0].json.sender, "Mathijs Schoonhoven <mathijs@example.nl>",
+    "sender must be a string, not raw JSON");
+  assert.strictEqual(typeof out[0].json.sender, "string");
+  assert.strictEqual(out[0].json.subject, "Horeca Boxing Amsterdam");
+});
+
+check("builds a from string when the object has no text field", () => {
+  const out = runCodeNode(extractCode, {
+    input: [{ json: {
+      id: "m11", threadId: "t11",
+      from: { value: [{ address: "a@b.nl", name: "Anna" }] },
+      subject: "Vraag", text: "Hoi",
+    } }],
+  });
+  assert.strictEqual(out[0].json.sender, "Anna <a@b.nl>");
+});
+
 console.log("\nMap labels (gmail-adapter-triage)");
 
 const mapCode = loadCode("gmail-adapter-triage.json", "Map labels");
