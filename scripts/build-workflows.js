@@ -159,10 +159,12 @@ function codeNode(name, position, jsCode) {
   };
 }
 
+// `to` may be a single node name or an array, for parallel branches.
 function connect(pairs) {
   const out = {};
   for (const [from, to] of pairs) {
-    out[from] = { main: [[{ node: to, type: "main", index: 0 }]] };
+    const targets = Array.isArray(to) ? to : [to];
+    out[from] = { main: [targets.map((node) => ({ node, type: "main", index: 0 }))] };
   }
   return out;
 }
@@ -356,6 +358,14 @@ return $input.all().map(item => {
 const CATEGORY_LABELS = ${JSON.stringify(CATEGORY_LABELS, null, 2)};
 const URGENCY_LABELS = ${JSON.stringify(URGENCY_LABELS, null, 2)};
 
+// Gmail's API takes label IDs, not names, so resolve them from the live label
+// list. A name that has no matching label is dropped with a warning rather
+// than failing the whole mail.
+const idByName = {};
+for (const l of $('Fetch labels').all()) {
+  if (l.json && l.json.name) idByName[l.json.name] = l.json.id;
+}
+
 // Pair each Claude response with its mail by index — a Gmail poll can return
 // several new messages, and the HTTP node preserves item order.
 const mails = $('Build triage request').all();
@@ -379,10 +389,15 @@ return $input.all().map((item, i) => {
   const labels = [URGENCY_LABELS[triage.urgentie], CATEGORY_LABELS[triage.categorie]].filter(Boolean);
   if (!triage.concept_toegestaan && !labels.includes('AI/Handmatig')) labels.push('AI/Handmatig');
 
+  const labelIds = labels.map(n => idByName[n]).filter(Boolean);
+  const ontbrekend = labels.filter(n => !idByName[n]);
+
   return { json: {
     messageId: mail.messageId, threadId: mail.threadId, sender: mail.sender,
     subject: mail.subject, body: mail.body,
-    triage, labels, triageJson: JSON.stringify(triage),
+    triage, labels, labelIds,
+    ontbrekendeLabels: ontbrekend,
+    triageJson: JSON.stringify(triage),
   } };
 });
 `.trim();
@@ -395,6 +410,15 @@ return $input.all().map((item, i) => {
       position: [0, 0],
       name: "Gmail Trigger",
     },
+    {
+      parameters: { resource: "label", operation: "getAll", returnAll: true },
+      type: "n8n-nodes-base.gmail",
+      typeVersion: 2.1,
+      position: [200, 200],
+      name: "Fetch labels",
+      // One call per run; the label set is tiny and rarely changes.
+      executeOnce: true,
+    },
     codeNode("Extract mail", [200, 0], extractCode),
     codeNode("Build triage request", [400, 0], buildTriageRequestCode()),
     anthropicHttpNode("Claude triage", [600, 0], 60000),
@@ -403,7 +427,7 @@ return $input.all().map((item, i) => {
       parameters: {
         operation: "addLabels",
         messageId: "={{ $json.messageId }}",
-        labelIds: "={{ $json.labels }}",
+        labelIds: "={{ $json.labelIds }}",
       },
       type: "n8n-nodes-base.gmail",
       typeVersion: 2.1,
@@ -444,7 +468,7 @@ return $input.all().map((item, i) => {
     name: "gmail-adapter-triage",
     nodes,
     connections: connect([
-      ["Gmail Trigger", "Extract mail"],
+      ["Gmail Trigger", ["Fetch labels", "Extract mail"]],
       ["Extract mail", "Build triage request"],
       ["Build triage request", "Claude triage"],
       ["Claude triage", "Map labels"],

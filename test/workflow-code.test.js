@@ -131,6 +131,12 @@ console.log("\nMap labels (gmail-adapter-triage)");
 
 const mapCode = loadCode("gmail-adapter-triage.json", "Map labels");
 const mail = { messageId: "m1", threadId: "t1", sender: "a@b.nl", subject: "s", body: "b" };
+// What Gmail's label list actually looks like: names paired with opaque IDs.
+const LABELS = [
+  "AI/1-Nu", "AI/2-Deze-week", "AI/3-FYI", "AI/Concept-klaar", "AI/Handmatig",
+  "AI/Deelnemer", "AI/Vereniging", "AI/Partner", "AI/Financieel",
+].map((name, i) => ({ json: { id: "Label_" + (100 + i), name } }));
+
 const claudeResponse = (obj) => [{ json: { content: [{ type: "text", text: JSON.stringify(obj) }] } }];
 
 check("pairs each response with its own mail in a batch", () => {
@@ -141,10 +147,13 @@ check("pairs each response with its own mail in a batch", () => {
       claudeResponse({ categorie: "RUIS", urgentie: "fyi", vereniging: null,
         taal: "nl", samenvatting: "y", concept_toegestaan: false, waarschuwing: null })[0],
     ],
-    refs: { "Build triage request": [
-      { json: { ...mail, messageId: "m1" } },
-      { json: { ...mail, messageId: "m2" } },
-    ] },
+    refs: {
+      "Build triage request": [
+        { json: { ...mail, messageId: "m1" } },
+        { json: { ...mail, messageId: "m2" } },
+      ],
+      "Fetch labels": LABELS,
+    },
   });
   assert.strictEqual(out.length, 2, "should return one item per mail");
   assert.strictEqual(out[0].json.messageId, "m1");
@@ -158,9 +167,12 @@ check("maps a participant question to urgency + Deelnemer labels", () => {
       categorie: "DEELNEMER_PRAKTISCH", urgentie: "nu", vereniging: "Okeanos",
       taal: "nl", samenvatting: "x", concept_toegestaan: true, waarschuwing: null,
     }),
-    refs: { "Build triage request": [{ json: mail }] },
+    refs: { "Build triage request": [{ json: mail }], "Fetch labels": LABELS },
   });
   assert.deepStrictEqual(out[0].json.labels, ["AI/1-Nu", "AI/Deelnemer"]);
+  assert.deepStrictEqual(out[0].json.labelIds, ["Label_100", "Label_105"],
+    "Gmail needs IDs, not names");
+  assert.deepStrictEqual(out[0].json.ontbrekendeLabels, []);
   assert.strictEqual(out[0].json.triage.vereniging, "Okeanos");
 });
 
@@ -170,7 +182,7 @@ check("adds AI/Handmatig when no draft is allowed", () => {
       categorie: "DEELNEMER_MEDISCH", urgentie: "nu", vereniging: null,
       taal: "nl", samenvatting: "x", concept_toegestaan: false, waarschuwing: "medisch",
     }),
-    refs: { "Build triage request": [{ json: mail }] },
+    refs: { "Build triage request": [{ json: mail }], "Fetch labels": LABELS },
   });
   assert(out[0].json.labels.includes("AI/Handmatig"));
 });
@@ -181,7 +193,7 @@ check("does not duplicate AI/Handmatig for RUIS", () => {
       categorie: "RUIS", urgentie: "fyi", vereniging: null,
       taal: "nl", samenvatting: "x", concept_toegestaan: false, waarschuwing: null,
     }),
-    refs: { "Build triage request": [{ json: mail }] },
+    refs: { "Build triage request": [{ json: mail }], "Fetch labels": LABELS },
   });
   const count = out[0].json.labels.filter((l) => l === "AI/Handmatig").length;
   assert.strictEqual(count, 1, `expected one AI/Handmatig, got ${count}`);
@@ -190,11 +202,28 @@ check("does not duplicate AI/Handmatig for RUIS", () => {
 check("falls back to manual review when triage returns invalid JSON", () => {
   const out = runCodeNode(mapCode, {
     input: [{ json: { content: [{ type: "text", text: "not json at all" }] } }],
-    refs: { "Build triage request": [{ json: mail }] },
+    refs: { "Build triage request": [{ json: mail }], "Fetch labels": LABELS },
   });
   assert.strictEqual(out[0].json.triage.concept_toegestaan, false);
   assert(out[0].json.labels.includes("AI/Handmatig"));
   assert(out[0].json.triage.waarschuwing);
+});
+
+check("drops a label that does not exist in Gmail instead of failing", () => {
+  const out = runCodeNode(mapCode, {
+    input: claudeResponse({
+      categorie: "DEELNEMER_PRAKTISCH", urgentie: "nu", vereniging: null,
+      taal: "nl", samenvatting: "x", concept_toegestaan: true, waarschuwing: null,
+    }),
+    refs: {
+      "Build triage request": [{ json: mail }],
+      // Gmail only has the urgency label; AI/Deelnemer was never created.
+      "Fetch labels": [{ json: { id: "Label_100", name: "AI/1-Nu" } }],
+    },
+  });
+  assert.deepStrictEqual(out[0].json.labelIds, ["Label_100"]);
+  assert.deepStrictEqual(out[0].json.ontbrekendeLabels, ["AI/Deelnemer"],
+    "missing label should be reported, not silently lost");
 });
 
 console.log("\nBuild context (ai-draft-core)");
