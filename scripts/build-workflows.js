@@ -457,7 +457,9 @@ return rows.map(r => {
   const j = r.json;
   const t = j.triage || {};
   return { json: {
-    datum: new Date().toISOString(),
+    // Local Amsterdam time, sortable: '2026-08-19 10:05:32'. UTC in the sheet
+    // does not line up with what Gmail shows and made rows look mismatched.
+    datum: new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Amsterdam' }),
     afzender: j.sender || '',
     categorie: t.categorie || '',
     urgentie: t.urgentie || '',

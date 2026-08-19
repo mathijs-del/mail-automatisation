@@ -118,7 +118,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const rows = $('Map labels').all();\n\nreturn rows.map(r => {\n  const j = r.json;\n  const t = j.triage || {};\n  return { json: {\n    datum: new Date().toISOString(),\n    afzender: j.sender || '',\n    categorie: t.categorie || '',\n    urgentie: t.urgentie || '',\n    // 'wacht' is what gmail-adapter-drafts picks up every 2 hours.\n    concept_gemaakt: t.concept_toegestaan ? 'wacht' : 'nee',\n    waarschuwing: t.waarschuwing || '',\n    resultaat: '',\n    messageId: j.messageId || '',\n    threadId: j.threadId || '',\n    subject: j.subject || '',\n    triage_json: j.triageJson || '',\n  } };\n});"
+        "jsCode": "const rows = $('Map labels').all();\n\nreturn rows.map(r => {\n  const j = r.json;\n  const t = j.triage || {};\n  return { json: {\n    // Local Amsterdam time, sortable: '2026-08-19 10:05:32'. UTC in the sheet\n    // does not line up with what Gmail shows and made rows look mismatched.\n    datum: new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Amsterdam' }),\n    afzender: j.sender || '',\n    categorie: t.categorie || '',\n    urgentie: t.urgentie || '',\n    // 'wacht' is what gmail-adapter-drafts picks up every 2 hours.\n    concept_gemaakt: t.concept_toegestaan ? 'wacht' : 'nee',\n    waarschuwing: t.waarschuwing || '',\n    resultaat: '',\n    messageId: j.messageId || '',\n    threadId: j.threadId || '',\n    subject: j.subject || '',\n    triage_json: j.triageJson || '',\n  } };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
