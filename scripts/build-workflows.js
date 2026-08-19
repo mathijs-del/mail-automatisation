@@ -434,32 +434,42 @@ return responses.map((item, i) => {
       position: [1200, 0],
       name: "Apply labels",
     },
+    // Emits keys that exactly match the AI_LOG column headers, so the Sheets
+    // node can auto-map. A defineBelow mapping does not survive import — it
+    // arrives with an empty "Values to Send" and the node refuses to run.
+    codeNode("Build log row", [1400, 0], `
+const rows = $('Map labels').all();
+
+return rows.map(r => {
+  const j = r.json;
+  const t = j.triage || {};
+  return { json: {
+    datum: new Date().toISOString(),
+    afzender: j.sender || '',
+    categorie: t.categorie || '',
+    urgentie: t.urgentie || '',
+    // 'wacht' is what gmail-adapter-drafts picks up every 2 hours.
+    concept_gemaakt: t.concept_toegestaan ? 'wacht' : 'nee',
+    waarschuwing: t.waarschuwing || '',
+    resultaat: '',
+    messageId: j.messageId || '',
+    threadId: j.threadId || '',
+    subject: j.subject || '',
+    triage_json: j.triageJson || '',
+  } };
+});
+`.trim()),
     {
       parameters: {
         operation: "append",
         documentId: sheetPicker(),
         sheetName: sheetPicker(),
-        columns: {
-          mappingMode: "defineBelow",
-          value: {
-            datum: "={{ $now.toISO() }}",
-            afzender: "={{ $json.sender }}",
-            categorie: "={{ $json.triage.categorie }}",
-            urgentie: "={{ $json.triage.urgentie }}",
-            concept_gemaakt: "={{ $json.triage.concept_toegestaan ? 'wacht' : 'nee' }}",
-            waarschuwing: "={{ $json.triage.waarschuwing || '' }}",
-            resultaat: "",
-            messageId: "={{ $json.messageId }}",
-            threadId: "={{ $json.threadId }}",
-            subject: "={{ $json.subject }}",
-            triage_json: "={{ $json.triageJson }}",
-          },
-        },
+        columns: { mappingMode: "autoMapInputData", matchingColumns: [] },
         options: {},
       },
       type: "n8n-nodes-base.googleSheets",
       typeVersion: 4.5,
-      position: [1400, 0],
+      position: [1600, 0],
       name: "Append log row",
     },
   ];
@@ -474,7 +484,8 @@ return responses.map((item, i) => {
       ["Claude triage", "Fetch labels"],
       ["Fetch labels", "Map labels"],
       ["Map labels", "Apply labels"],
-      ["Apply labels", "Append log row"],
+      ["Apply labels", "Build log row"],
+      ["Build log row", "Append log row"],
     ]),
     settings: { executionOrder: "v1" },
   };

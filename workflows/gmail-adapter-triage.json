@@ -118,6 +118,18 @@
     },
     {
       "parameters": {
+        "jsCode": "const rows = $('Map labels').all();\n\nreturn rows.map(r => {\n  const j = r.json;\n  const t = j.triage || {};\n  return { json: {\n    datum: new Date().toISOString(),\n    afzender: j.sender || '',\n    categorie: t.categorie || '',\n    urgentie: t.urgentie || '',\n    // 'wacht' is what gmail-adapter-drafts picks up every 2 hours.\n    concept_gemaakt: t.concept_toegestaan ? 'wacht' : 'nee',\n    waarschuwing: t.waarschuwing || '',\n    resultaat: '',\n    messageId: j.messageId || '',\n    threadId: j.threadId || '',\n    subject: j.subject || '',\n    triage_json: j.triageJson || '',\n  } };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        0
+      ],
+      "name": "Build log row"
+    },
+    {
+      "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
@@ -132,27 +144,15 @@
           "cachedResultName": ""
         },
         "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "datum": "={{ $now.toISO() }}",
-            "afzender": "={{ $json.sender }}",
-            "categorie": "={{ $json.triage.categorie }}",
-            "urgentie": "={{ $json.triage.urgentie }}",
-            "concept_gemaakt": "={{ $json.triage.concept_toegestaan ? 'wacht' : 'nee' }}",
-            "waarschuwing": "={{ $json.triage.waarschuwing || '' }}",
-            "resultaat": "",
-            "messageId": "={{ $json.messageId }}",
-            "threadId": "={{ $json.threadId }}",
-            "subject": "={{ $json.subject }}",
-            "triage_json": "={{ $json.triageJson }}"
-          }
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": []
         },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        1400,
+        1600,
         0
       ],
       "name": "Append log row"
@@ -226,6 +226,17 @@
       ]
     },
     "Apply labels": {
+      "main": [
+        [
+          {
+            "node": "Build log row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build log row": {
       "main": [
         [
           {

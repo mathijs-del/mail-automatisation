@@ -347,4 +347,42 @@ check("builds one request per mail in a batch", () => {
   assert(out[1].json.requestBody.messages[0].content.includes("b2"));
 });
 
+console.log("\nBuild log row (gmail-adapter-triage)");
+
+const logCode = loadCode("gmail-adapter-triage.json", "Build log row");
+
+check("emits exactly the AI_LOG column names for auto-mapping", () => {
+  const out = runCodeNode(logCode, {
+    input: [],
+    refs: { "Map labels": [{ json: {
+      messageId: "m1", threadId: "t1", sender: "sem@ex.nl", subject: "Clinic vraag",
+      triage: { categorie: "DEELNEMER_PRAKTISCH", urgentie: "nu",
+        concept_toegestaan: true, waarschuwing: null },
+      triageJson: '{"categorie":"DEELNEMER_PRAKTISCH"}',
+    } }] },
+  });
+  assert.deepStrictEqual(Object.keys(out[0].json), [
+    "datum", "afzender", "categorie", "urgentie", "concept_gemaakt",
+    "waarschuwing", "resultaat", "messageId", "threadId", "subject", "triage_json",
+  ], "keys must match the sheet headers exactly, in order");
+  assert.strictEqual(out[0].json.concept_gemaakt, "wacht",
+    "a draftable mail must be queued for the drafts workflow");
+  assert.strictEqual(out[0].json.waarschuwing, "");
+  assert.strictEqual(out[0].json.resultaat, "");
+});
+
+check("marks a no-draft mail as nee, not wacht", () => {
+  const out = runCodeNode(logCode, {
+    input: [],
+    refs: { "Map labels": [{ json: {
+      messageId: "m2", threadId: "t2", sender: "a@b.nl", subject: "Blessure",
+      triage: { categorie: "DEELNEMER_MEDISCH", urgentie: "nu",
+        concept_toegestaan: false, waarschuwing: "medisch" },
+      triageJson: "{}",
+    } }] },
+  });
+  assert.strictEqual(out[0].json.concept_gemaakt, "nee");
+  assert.strictEqual(out[0].json.waarschuwing, "medisch");
+});
+
 console.log(`\n${passed} checks passed.\n`);
