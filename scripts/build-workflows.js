@@ -81,11 +81,12 @@ function anthropicHeaders() {
     parameters: {
       authentication: "genericCredentialType",
       genericAuthType: "httpHeaderAuth",
+      // Only anthropic-version here. n8n's JSON body mode sets Content-Type
+      // itself; adding our own produced a duplicate header and a 400.
       sendHeaders: true,
       headerParameters: {
         parameter: [
           { name: "anthropic-version", value: "2023-06-01" },
-          { name: "content-type", value: "application/json" },
         ],
       },
     },

@@ -94,10 +94,6 @@
             {
               "name": "anthropic-version",
               "value": "2023-06-01"
-            },
-            {
-              "name": "content-type",
-              "value": "application/json"
             }
           ]
         },
