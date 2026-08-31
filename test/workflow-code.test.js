@@ -348,13 +348,31 @@ console.log("\nPending drafts (gmail-adapter-drafts)");
 
 const pendingCode = loadCode("gmail-adapter-drafts.json", "Pending drafts");
 
+// A log row as the Sheets node hands it over, minutes old so it passes the
+// age guard. Override per test.
+const sheetTime = (hoursAgo) =>
+  new Date(Date.now() - hoursAgo * 3600000).toISOString().slice(0, 19).replace("T", " ");
+
+const logRow = (over = {}) => ({
+  json: {
+    datum: sheetTime(0.5),
+    afzender: "a@b.nl",
+    categorie: "DEELNEMER_PRAKTISCH",
+    concept_gemaakt: "wacht",
+    subject: "Vraag over clinic",
+    messageId: "m1",
+    threadId: "t1",
+    triage_json: JSON.stringify({ taal: "nl", vereniging: "Okeanos" }),
+    ...over,
+  },
+});
+
 check("selects only rows awaiting a draft", () => {
-  const triageJson = JSON.stringify({ taal: "en", vereniging: "Okeanos" });
   const out = runCodeNode(pendingCode, {
     input: [
-      { json: { concept_gemaakt: "wacht", afzender: "a@b.nl", subject: "s1", messageId: "m1", threadId: "t1", triage_json: triageJson, row_number: 2 } },
-      { json: { concept_gemaakt: "ja", afzender: "c@d.nl", subject: "s2", messageId: "m2", threadId: "t2", triage_json: triageJson, row_number: 3 } },
-      { json: { concept_gemaakt: "nee", afzender: "e@f.nl", subject: "s3", messageId: "m3", threadId: "t3", triage_json: triageJson, row_number: 4 } },
+      logRow({ messageId: "m1", triage_json: JSON.stringify({ taal: "en" }) }),
+      logRow({ concept_gemaakt: "ja", messageId: "m2" }),
+      logRow({ concept_gemaakt: "nee", messageId: "m3" }),
     ],
   });
   assert.strictEqual(out.length, 1, `expected 1 pending row, got ${out.length}`);
@@ -365,10 +383,215 @@ check("selects only rows awaiting a draft", () => {
 
 check("survives a corrupt triage_json cell", () => {
   const out = runCodeNode(pendingCode, {
-    input: [{ json: { concept_gemaakt: "wacht", afzender: "a@b.nl", subject: "s", messageId: "m", threadId: "t", triage_json: "{broken", row_number: 2 } }],
+    input: [logRow({ triage_json: "{broken" })],
   });
   assert.strictEqual(out.length, 1);
   assert.strictEqual(out[0].json.language_hint, "nl", "should fall back to nl");
+});
+
+check("drafts only the categories on the fase 4 allowlist", () => {
+  const out = runCodeNode(pendingCode, {
+    input: [
+      logRow({ categorie: "DEELNEMER_PRAKTISCH", messageId: "m1" }),
+      logRow({ categorie: "DEELNEMER_FINANCIEEL", messageId: "m2" }),
+      logRow({ categorie: "VERENIGING_BESTUUR", messageId: "m3" }),
+      logRow({ categorie: "PARTNER_SPONSOR", messageId: "m4" }),
+    ],
+  });
+  assert.deepStrictEqual(out.map((o) => o.json.messageId), ["m1"],
+    "fase 4 starts with DEELNEMER_PRAKTISCH only");
+});
+
+check("ignores rows older than the age guard", () => {
+  const out = runCodeNode(pendingCode, {
+    input: [
+      logRow({ datum: sheetTime(2), messageId: "recent" }),
+      logRow({ datum: sheetTime(24 * 9), messageId: "oud" }),
+    ],
+  });
+  assert.deepStrictEqual(out.map((o) => o.json.messageId), ["recent"],
+    "widening the allowlist must not dump weeks of backlog into drafts");
+});
+
+check("still picks up a row with an unreadable datum", () => {
+  const out = runCodeNode(pendingCode, { input: [logRow({ datum: "" })] });
+  assert.strictEqual(out.length, 1, "a bad date must not silently skip a mail");
+});
+
+check("skips a row without a messageId", () => {
+  const out = runCodeNode(pendingCode, { input: [logRow({ messageId: "" })] });
+  assert.strictEqual(out.length, 0, "without an id the mail cannot be fetched or updated");
+});
+
+console.log("\nExtract body (gmail-adapter-drafts)");
+
+const extractBodyCode = loadCode("gmail-adapter-drafts.json", "Extract body");
+
+const pendingItem = (over = {}) => ({
+  json: {
+    channel: "email", sender: "sem@ex.nl", subject: "Vraag over clinic",
+    language_hint: "nl", triage: { taal: "nl" },
+    messageId: "m1", threadId: "t1", conceptLabelId: "Label_103", ...over,
+  },
+});
+
+check("re-fetches the body the log sheet does not store", () => {
+  const body = "Hoi, wanneer is clinic 1?";
+  const out = runCodeNode(extractBodyCode, {
+    input: [{ json: { id: "m1", threadId: "t1", payload: {
+      mimeType: "text/plain", headers: [], body: { data: b64url(body) },
+    } } }],
+    refs: { "Pending drafts": [pendingItem()] },
+  });
+  assert.strictEqual(out[0].json.body, body,
+    "the draft must be written from the mail, not from the subject line");
+  assert.strictEqual(out[0].json.threadId, "t1", "pending fields must pass through");
+  assert.strictEqual(out[0].json.conceptLabelId, "Label_103");
+  assert.strictEqual(out[0].json.bodyLeeg, "");
+});
+
+check("matches each fetched message to its own log row by id", () => {
+  const out = runCodeNode(extractBodyCode, {
+    // Gmail returned them in the other order than the sheet did.
+    input: [
+      { json: { id: "m2", payload: { mimeType: "text/plain", headers: [], body: { data: b64url("tweede") } } } },
+      { json: { id: "m1", payload: { mimeType: "text/plain", headers: [], body: { data: b64url("eerste") } } } },
+    ],
+    refs: { "Pending drafts": [
+      pendingItem({ messageId: "m1", subject: "Eerste" }),
+      pendingItem({ messageId: "m2", subject: "Tweede" }),
+    ] },
+  });
+  assert.strictEqual(out[0].json.subject, "Tweede");
+  assert.strictEqual(out[0].json.body, "tweede");
+  assert.strictEqual(out[1].json.subject, "Eerste");
+  assert.strictEqual(out[1].json.body, "eerste");
+});
+
+check("does not stack Re: on a subject that already has one", () => {
+  const fetched = [{ json: { id: "m1", snippet: "x" } }];
+  const plain = runCodeNode(extractBodyCode, {
+    input: fetched, refs: { "Pending drafts": [pendingItem({ subject: "Clinic" })] },
+  });
+  const already = runCodeNode(extractBodyCode, {
+    input: fetched, refs: { "Pending drafts": [pendingItem({ subject: "Re: Clinic" })] },
+  });
+  assert.strictEqual(plain[0].json.replySubject, "Re: Clinic");
+  assert.strictEqual(already[0].json.replySubject, "Re: Clinic");
+});
+
+check("flags a mail it could not read a body out of", () => {
+  const out = runCodeNode(extractBodyCode, {
+    input: [{ json: { id: "m1" } }],
+    refs: { "Pending drafts": [pendingItem({ subject: "Clinic" })] },
+  });
+  assert.strictEqual(out[0].json.bodyLeeg, "ja");
+  assert.strictEqual(out[0].json.body, "Clinic", "falls back to the subject rather than nothing");
+});
+
+console.log("\nResolve label (gmail-adapter-drafts)");
+
+const resolveLabelCode = loadCode("gmail-adapter-drafts.json", "Resolve label");
+
+check("resolves AI/Concept-klaar to its Gmail id", () => {
+  const out = runCodeNode(resolveLabelCode, {
+    input: LABELS,
+    refs: { "Pending drafts": [pendingItem({ conceptLabelId: undefined })] },
+  });
+  assert.strictEqual(out[0].json.conceptLabelId, "Label_103",
+    "Gmail's modify endpoint 400s on a label name");
+  assert.strictEqual(out[0].json.messageId, "m1", "pending fields must survive");
+});
+
+check("leaves the label id empty when the label does not exist", () => {
+  const out = runCodeNode(resolveLabelCode, {
+    input: [{ json: { id: "Label_1", name: "Inbox" } }],
+    refs: { "Pending drafts": [pendingItem({ conceptLabelId: undefined })] },
+  });
+  assert.strictEqual(out[0].json.conceptLabelId, "",
+    "a missing label must not fail the draft run");
+});
+
+console.log("\nMerge draft (gmail-adapter-drafts)");
+
+const mergeDraftCode = loadCode("gmail-adapter-drafts.json", "Merge draft");
+
+check("re-attaches the mail's ids to the core's generic output", () => {
+  const out = runCodeNode(mergeDraftCode, {
+    input: [
+      { json: { draft_text: "Concept 1", warnings: [], sources: [] } },
+      { json: { draft_text: "Concept 2", warnings: [], sources: [] } },
+    ],
+    refs: { "Extract body": [
+      pendingItem({ messageId: "m1", threadId: "t1", replySubject: "Re: Een" }),
+      pendingItem({ messageId: "m2", threadId: "t2", replySubject: "Re: Twee" }),
+    ] },
+  });
+  assert.strictEqual(out[0].json.threadId, "t1");
+  assert.strictEqual(out[0].json.draft_text, "Concept 1");
+  assert.strictEqual(out[1].json.threadId, "t2");
+  assert.strictEqual(out[1].json.draft_text, "Concept 2");
+  assert.strictEqual(out[1].json.replySubject, "Re: Twee");
+});
+
+console.log("\nBuild done row (gmail-adapter-drafts)");
+
+const doneRowCode = loadCode("gmail-adapter-drafts.json", "Build done row");
+
+check("emits only the match key and the column to update", () => {
+  const out = runCodeNode(doneRowCode, {
+    input: [],
+    refs: { "Build afterwork": [
+      { json: { messageId: "m1", conceptLabelId: "Label_103", concept_gemaakt: "ja" } },
+    ] },
+  });
+  assert.deepStrictEqual(Object.keys(out[0].json), ["messageId", "concept_gemaakt"],
+    "auto-mapping writes every key, so only these two may be present");
+  assert.strictEqual(out[0].json.concept_gemaakt, "ja");
+});
+
+console.log("\nDraft workflow wiring");
+
+const draftWf = JSON.parse(
+  fs.readFileSync(path.join(WF_DIR, "gmail-adapter-drafts.json"), "utf8"));
+const draftNode = (name) => draftWf.nodes.find((n) => n.name === name);
+
+check("never uses a Gmail send operation", () => {
+  for (const n of draftWf.nodes) {
+    const op = (n.parameters || {}).operation || "";
+    assert(!/^send/i.test(op), `node "${n.name}" uses operation "${op}"`);
+  }
+  assert.strictEqual(draftNode("Create draft").parameters.resource, "draft");
+  assert.strictEqual(draftNode("Create draft").parameters.operation, "create");
+});
+
+check("writes the draft into the original thread", () => {
+  const opts = draftNode("Create draft").parameters.options;
+  assert(opts.threadId, "without threadId the draft lands outside the conversation");
+});
+
+check("no Sheets node relies on a defineBelow mapping", () => {
+  for (const n of draftWf.nodes.filter((x) => x.type.endsWith("googleSheets"))) {
+    const mode = ((n.parameters || {}).columns || {}).mappingMode;
+    assert(mode !== "defineBelow",
+      `node "${n.name}" uses defineBelow, which does not survive import`);
+  }
+  const done = draftNode("Mark done").parameters.columns;
+  assert.deepStrictEqual(done.matchingColumns, ["messageId"]);
+});
+
+check("every node sits on the single linear chain", () => {
+  // A node on a parallel branch may not have run when another reads from it —
+  // that is what broke "Fetch labels" in the triage adapter.
+  const targets = new Set();
+  for (const conn of Object.values(draftWf.connections)) {
+    for (const group of conn.main) {
+      assert(group.length === 1, "no node may fan out to two branches");
+      for (const t of group) targets.add(t.node);
+    }
+  }
+  assert.strictEqual(targets.size, draftWf.nodes.length - 1,
+    "every node except the trigger must be reachable exactly once");
 });
 
 console.log("\nBuild triage request (gmail-adapter-triage)");

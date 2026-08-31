@@ -148,6 +148,46 @@ Import neemt credentials nooit mee — dat koppelen blijft handwerk.
 
 ---
 
+## Concepten aanzetten (fase 4)
+
+`gmail-adapter-drafts` begint bewust klein. Bovenin de node **Pending drafts**
+staan twee instellingen:
+
+```js
+const TOEGESTANE_CATEGORIEEN = ['DEELNEMER_PRAKTISCH'];
+const MAX_LEEFTIJD_UREN = 72;
+```
+
+- **`TOEGESTANE_CATEGORIEEN`** — alleen deze categorieën krijgen een concept.
+  Praktische deelnemersvragen zijn de grootste stapel én het minst riskant, dus
+  daar begin je. Zie in `AI_LOG` hoe vaak de `resultaat`-kolom `O` of `L` is;
+  staat dat goed, zet er dan één categorie bij. `['*']` zet alles aan waar
+  triage `concept_gemaakt = wacht` voor heeft gezet.
+- **`MAX_LEEFTIJD_UREN`** — rijen ouder dan drie dagen worden overgeslagen.
+  Zonder die grens zou het uitbreiden van de lijst hierboven ineens weken oude,
+  allang met de hand beantwoorde mail alsnog van een concept voorzien.
+
+Een rij die buiten de lijst valt blijft op `wacht` staan en kost niets: hij
+wordt in een Code-node weggefilterd, vóór er een Claude-aanroep is.
+
+Wat de workflow per ronde doet:
+
+1. `AI_LOG` lezen, de rijen op `wacht` pakken die aan bovenstaande voldoen.
+2. De mail zelf **opnieuw bij Gmail ophalen**. Het logsheet bewaart geen
+   berichttekst — een volledig mailbody per rij maakt een sheet die elke twee
+   uur gelezen wordt onwerkbaar.
+3. `ai-draft-core` aanroepen.
+4. Het concept in de originele thread zetten (`threadId`), label
+   `AI/Concept-klaar` erop, en de rij op `concept_gemaakt = ja` zetten.
+
+**Let op de handtekening.** Een concept dat via de API is aangemaakt krijgt je
+Gmail-handtekening er niet automatisch onder — Gmail voegt die alleen toe aan
+een concept dat je zelf in de browser begint. Het concept eindigt dus bij de
+afsluitzin. Controleer dat bij het eerste concept en plak de handtekening er
+handmatig onder voordat je verstuurt.
+
+---
+
 ## Prompts aanpassen
 
 De twee prompts staan als losse bestanden in `prompts/`, los van de

@@ -148,6 +148,47 @@ return $input.all().map(item => {
 `.trim();
 }
 
+// Shared by both Gmail adapters: the trigger and message:get return the same
+// awkward mix of shapes, and getting this wrong silently empties the mail.
+const MAIL_HELPERS = `
+// Gmail returns the body base64url-encoded, possibly nested in parts.
+function decode(data) {
+  return Buffer.from(String(data).replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+}
+function findPlainText(payload) {
+  if (!payload) return '';
+  if (payload.mimeType === 'text/plain' && payload.body && payload.body.data) {
+    return decode(payload.body.data);
+  }
+  for (const part of payload.parts || []) {
+    const found = findPlainText(part);
+    if (found) return found;
+  }
+  return '';
+}
+// An address field can be a plain string OR a mailparser-style object
+// ({value:[{address,name}], text}). Taking the object verbatim wrote raw
+// JSON into the log and sent "[object Object]" to the classifier.
+function asAddress(v) {
+  if (!v) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v.text === 'string' && v.text) return v.text;
+  const first = Array.isArray(v.value) ? v.value[0] : null;
+  if (first) return first.name ? first.name + ' <' + first.address + '>' : (first.address || '');
+  return '';
+}
+function asText(v) {
+  if (!v) return '';
+  return typeof v === 'string' ? v : (typeof v.text === 'string' ? v.text : '');
+}
+// Cap runaway threads — the tail of a long quote adds cost without signal.
+function mailBody(msg) {
+  let body = findPlainText(msg.payload) || asText(msg.text) || asText(msg.textAsHtml) || msg.snippet || '';
+  if (body.length > 12000) body = body.slice(0, 12000) + '\\n\\n[...afgekapt]';
+  return body;
+}
+`.trim();
+
 function codeNode(name, position, jsCode) {
   return {
     parameters: { jsCode },
@@ -317,21 +358,7 @@ return [{ json: {
 
 function buildTriageAdapter() {
   const extractCode = `
-// Gmail returns the body base64url-encoded, possibly nested in parts.
-function decode(data) {
-  return Buffer.from(String(data).replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
-}
-function findPlainText(payload) {
-  if (!payload) return '';
-  if (payload.mimeType === 'text/plain' && payload.body && payload.body.data) {
-    return decode(payload.body.data);
-  }
-  for (const part of payload.parts || []) {
-    const found = findPlainText(part);
-    if (found) return found;
-  }
-  return '';
-}
+${MAIL_HELPERS}
 
 return $input.all().map(item => {
   const msg = item.json;
@@ -347,28 +374,9 @@ return $input.all().map(item => {
   // Simplified output puts the same values at the top level, or under .headers.
   const flat = msg.headers && !Array.isArray(msg.headers) ? msg.headers : {};
 
-  // An address field can be a plain string OR a mailparser-style object
-  // ({value:[{address,name}], text}). Taking the object verbatim wrote raw
-  // JSON into the log and sent "[object Object]" to the classifier.
-  function asAddress(v) {
-    if (!v) return '';
-    if (typeof v === 'string') return v;
-    if (typeof v.text === 'string' && v.text) return v.text;
-    const first = Array.isArray(v.value) ? v.value[0] : null;
-    if (first) return first.name ? first.name + ' <' + first.address + '>' : (first.address || '');
-    return '';
-  }
-  function asText(v) {
-    if (!v) return '';
-    return typeof v === 'string' ? v : (typeof v.text === 'string' ? v.text : '');
-  }
-
   const sender = asAddress(headers.from || msg.from || flat.from || flat.From);
   const subject = asText(headers.subject || msg.subject || flat.subject || flat.Subject);
-
-  let body = findPlainText(msg.payload) || msg.text || msg.textAsHtml || msg.snippet || '';
-  // Cap runaway threads — the tail of a long quote adds cost without signal.
-  if (body.length > 12000) body = body.slice(0, 12000) + '\\n\\n[...afgekapt]';
+  const body = mailBody(msg);
 
   return { json: {
     messageId: msg.id,
@@ -528,26 +536,114 @@ return rows.map(r => {
 // draft into the original thread. Batching is what keeps the Sonnet cost down;
 // one cache write per batch instead of one per mail.
 
+const CONCEPT_LABEL = "AI/Concept-klaar";
+
 function buildDraftAdapter() {
   const pendingCode = `
-// Only rows triage marked as awaiting a draft.
+// --- Fase 4-instelling ----------------------------------------------------
+// Begin met alleen praktische deelnemersvragen (CLAUDE.md §7). Uitbreiden doe
+// je hier: zet er een categorie bij zodra AI_LOG laat zien dat die goed gaat.
+// ['*'] zet alle categorieen aan die triage al op 'wacht' zet.
+const TOEGESTANE_CATEGORIEEN = ['DEELNEMER_PRAKTISCH'];
+
+// Rijen ouder dan dit worden niet meer opgepakt. Zonder deze grens zou het
+// uitbreiden van de lijst hierboven ineens weken oude, allang met de hand
+// beantwoorde mail alsnog van een concept voorzien.
+const MAX_LEEFTIJD_UREN = 72;
+// --------------------------------------------------------------------------
+
+const nu = Date.now();
+
+function binnenTermijn(waarde) {
+  // Sheets geeft 'YYYY-MM-DD HH:MM:SS' terug, soms al als Date.
+  const d = waarde instanceof Date ? waarde : new Date(String(waarde || '').replace(' ', 'T'));
+  if (isNaN(d.getTime())) return true;   // onleesbare datum: liever wel oppakken
+  return (nu - d.getTime()) / 3600000 <= MAX_LEEFTIJD_UREN;
+}
+
 return $input.all()
   .filter(i => String(i.json.concept_gemaakt || '').trim() === 'wacht')
+  // Zonder messageId kunnen we de mail niet ophalen en de rij niet terugvinden.
+  .filter(i => String(i.json.messageId || '').trim() !== '')
+  .filter(i => TOEGESTANE_CATEGORIEEN.includes('*') ||
+               TOEGESTANE_CATEGORIEEN.includes(String(i.json.categorie || '').trim()))
+  .filter(i => binnenTermijn(i.json.datum))
   .map(i => {
     let triage = {};
     try { triage = JSON.parse(i.json.triage_json); } catch (e) {}
     return { json: {
       channel: 'email',
-      sender: i.json.afzender,
-      subject: i.json.subject,
-      body: i.json.body || i.json.subject,
+      sender: String(i.json.afzender || ''),
+      subject: String(i.json.subject || ''),
       language_hint: triage.taal || 'nl',
       triage,
-      messageId: i.json.messageId,
-      threadId: i.json.threadId,
-      rowNumber: i.json.row_number,
+      messageId: String(i.json.messageId),
+      threadId: String(i.json.threadId || ''),
     } };
   });
+`.trim();
+
+  // The log sheet deliberately has no body column — a full mail body per row
+  // would make a sheet that is re-read every 2 hours unusable. The body is
+  // re-fetched from Gmail here instead.
+  const extractBodyCode = `
+${MAIL_HELPERS}
+
+const pending = $('Pending drafts').all().map(p => p.json);
+const byId = {};
+for (const p of pending) byId[p.messageId] = p;
+
+return $input.all().map((item, i) => {
+  const msg = item.json;
+  const base = byId[msg.id] || pending[i] || {};
+  const body = mailBody(msg);
+
+  // Re: Re: Re: — Gmail already threads on threadId, the prefix is cosmetic.
+  const subject = base.subject || '';
+  const replySubject = /^\\s*re\\s*:/i.test(subject) ? subject : 'Re: ' + subject;
+
+  return {
+    json: { ...base, body: body || subject, replySubject, bodyLeeg: body ? '' : 'ja' },
+    pairedItem: { item: i },
+  };
+});
+`.trim();
+
+  const resolveLabelCode = `
+// Gmail's API takes label IDs, not names. Passing the name straight through is
+// what made the triage workflow's label node return a 400.
+const idByName = {};
+for (const l of $input.all()) {
+  if (l.json && l.json.name) idByName[l.json.name] = l.json.id;
+}
+const conceptLabelId = idByName[${JSON.stringify(CONCEPT_LABEL)}] || '';
+
+return $('Pending drafts').all().map(p => ({ json: { ...p.json, conceptLabelId } }));
+`.trim();
+
+  // ai-draft-core returns only the generic contract, so the mail's own ids are
+  // re-attached here by position rather than through $('...').item — a Code
+  // node upstream can leave n8n unable to resolve that pairing at all.
+  const mergeDraftCode = `
+const mails = $('Extract body').all();
+
+return $input.all().map((item, i) => {
+  const mail = mails[i] ? mails[i].json : {};
+  return {
+    json: { ...mail, ...item.json },
+    pairedItem: { item: i },
+  };
+});
+`.trim();
+
+  const afterworkCode = `
+// One item per created draft, carrying everything the label node and the sheet
+// update still need.
+return $('Merge draft').all().map(m => ({ json: {
+  messageId: m.json.messageId,
+  conceptLabelId: m.json.conceptLabelId || '',
+  concept_gemaakt: 'ja',
+} }));
 `.trim();
 
   const nodes = [
@@ -571,6 +667,28 @@ return $input.all()
     },
     codeNode("Pending drafts", [400, 0], pendingCode),
     {
+      parameters: { resource: "label", operation: "getAll", returnAll: true },
+      type: "n8n-nodes-base.gmail",
+      typeVersion: 2.1,
+      position: [600, 0],
+      name: "Fetch labels",
+      executeOnce: true,
+    },
+    codeNode("Resolve label", [800, 0], resolveLabelCode),
+    {
+      parameters: {
+        operation: "get",
+        messageId: "={{ $json.messageId }}",
+        simple: false,
+        options: {},
+      },
+      type: "n8n-nodes-base.gmail",
+      typeVersion: 2.1,
+      position: [1000, 0],
+      name: "Fetch message",
+    },
+    codeNode("Extract body", [1200, 0], extractBodyCode),
+    {
       parameters: {
         workflowId: { __rl: true, value: "", mode: "list", cachedResultName: "" },
         workflowInputs: {
@@ -588,53 +706,61 @@ return $input.all()
       },
       type: "n8n-nodes-base.executeWorkflow",
       typeVersion: 1.2,
-      position: [600, 0],
+      position: [1400, 0],
       name: "ai-draft-core",
     },
+    codeNode("Merge draft", [1600, 0], mergeDraftCode),
     {
       parameters: {
         resource: "draft",
         operation: "create",
-        subject: "=Re: {{ $('Pending drafts').item.json.subject }}",
+        subject: "={{ $json.replySubject }}",
+        emailType: "text",
         message: "={{ $json.draft_text }}",
         options: {
-          threadId: "={{ $('Pending drafts').item.json.threadId }}",
-          sendTo: "={{ $('Pending drafts').item.json.sender }}",
+          // threadId is what puts the draft inside the original conversation.
+          // Never a send operation — CLAUDE.md §8.
+          threadId: "={{ $json.threadId }}",
+          sendTo: "={{ $json.sender }}",
         },
       },
       type: "n8n-nodes-base.gmail",
       typeVersion: 2.1,
-      position: [800, 0],
+      position: [1800, 0],
       name: "Create draft",
     },
+    codeNode("Build afterwork", [2000, 0], afterworkCode),
     {
       parameters: {
         operation: "addLabels",
-        messageId: "={{ $('Pending drafts').item.json.messageId }}",
-        labelIds: ["AI/Concept-klaar"],
+        messageId: "={{ $json.messageId }}",
+        labelIds: "={{ $json.conceptLabelId ? [$json.conceptLabelId] : [] }}",
       },
       type: "n8n-nodes-base.gmail",
       typeVersion: 2.1,
-      position: [1000, 0],
+      position: [2200, 0],
       name: "Label concept-klaar",
     },
+    // Same auto-map trick as the triage adapter: a defineBelow mapping does not
+    // survive import and leaves the node with an empty "Values to Send".
+    // The row is found by messageId, so no row number has to be tracked.
+    codeNode("Build done row", [2400, 0], `
+return $('Build afterwork').all().map(a => ({ json: {
+  messageId: a.json.messageId,
+  concept_gemaakt: 'ja',
+} }));
+`.trim()),
     {
       parameters: {
         operation: "update",
         documentId: sheetPicker(),
         sheetName: sheetPicker(),
-        columns: {
-          mappingMode: "defineBelow",
-          value: {
-            row_number: "={{ $('Pending drafts').item.json.rowNumber }}",
-            concept_gemaakt: "ja",
-          },
-        },
+        columns: { mappingMode: "autoMapInputData", matchingColumns: ["messageId"] },
         options: {},
       },
       type: "n8n-nodes-base.googleSheets",
       typeVersion: 4.5,
-      position: [1200, 0],
+      position: [2600, 0],
       name: "Mark done",
     },
   ];
@@ -645,10 +771,17 @@ return $input.all()
     connections: connect([
       ["Every 2 hours", "Read log"],
       ["Read log", "Pending drafts"],
-      ["Pending drafts", "ai-draft-core"],
-      ["ai-draft-core", "Create draft"],
-      ["Create draft", "Label concept-klaar"],
-      ["Label concept-klaar", "Mark done"],
+      ["Pending drafts", "Fetch labels"],
+      ["Fetch labels", "Resolve label"],
+      ["Resolve label", "Fetch message"],
+      ["Fetch message", "Extract body"],
+      ["Extract body", "ai-draft-core"],
+      ["ai-draft-core", "Merge draft"],
+      ["Merge draft", "Create draft"],
+      ["Create draft", "Build afterwork"],
+      ["Build afterwork", "Label concept-klaar"],
+      ["Label concept-klaar", "Build done row"],
+      ["Build done row", "Mark done"],
     ]),
     settings: { executionOrder: "v1" },
   };
